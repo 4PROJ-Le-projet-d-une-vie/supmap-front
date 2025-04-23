@@ -1,12 +1,18 @@
 import { Image, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import MapComponent from '../../components/MapComponent'; // Ajuste le chemin
+import MapComponent from '../../components/MapComponent';
+import AuthNavigator from "@/components/AuthNavigator";
+import {AuthProvider} from "@/contexts/AuthContext"; // Ajuste le chemin
+import React from 'react';
+import Navigation from "@/navigation/Navigation";
 
 export default function HomeScreen() {
   return (
-      <SafeAreaView style={{ flex: 1 }}>
-          <MapComponent />
-      </SafeAreaView>
+      <AuthProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+            <Navigation />
+        </SafeAreaView>
+      </AuthProvider>
   );
 }
 
