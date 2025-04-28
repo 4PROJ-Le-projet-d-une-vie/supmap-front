@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    NotoSansLao: require('../assets/fonts/NotoSansLao-VariableFont_wdth,wght.ttf'),
   });
 
   useEffect(() => {

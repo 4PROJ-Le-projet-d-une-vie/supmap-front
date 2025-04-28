@@ -129,13 +129,11 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     }
 
     const fetchSuggestions = (text: string) => {
-        console.log(text)
         setSearchResults(testingSearchResults.data)
         setShowResults(true);
-        console.log(showResults)
     }
 
-    const handleDestinationSelect = (item) => {
+    const handleResultPress = (item) => {
         Keyboard.dismiss();
         setShowResults(false);
         setSearchText(item.display_name);
@@ -143,14 +141,14 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
             latitude: parseFloat(item.lat),
             longitude: parseFloat(item.lon),
         };
-        navigation.navigate('RouteChoice', { destination });
+        navigation.navigate('RouteChoice', { routes: testingData.data });
     };
 
     return (
         <View style={styles.container}>
             {region && (
                 <View>
-                    <MapView customMapStyle={mapDesign} ref={mapRef} style={styles.map} initialRegion={region} onPress={(event) => fetchRoute(event.nativeEvent.coordinate)} showsUserLocation>
+                    <MapView customMapStyle={mapDesign} ref={mapRef} style={styles.map} initialRegion={region} showsUserLocation>
                         {location && <Marker coordinate={location} title="Départ" />}
                         {routeCoords.length > 0 && (
                             <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
@@ -176,33 +174,38 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                     )}
 
                     {instructions.length == 0 && (
-                        <View style={styles.searchBar}>
-                            <Ionicons name="search" size={20} color="black" />
-                            <TextInput
-                                value={searchText}
-                                onChangeText={(text) => {
-                                    setSearchText(text);
-                                    fetchSuggestions(text);
-                                }}
-                                placeholder="Où allons-nous ?"
-                                style={styles.searchInput}
-                                onFocus={() => setShowResults(true)}
-                            />
-                            {showResults && (
-                                <FlatList
-                                    data={searchResults.data}
-                                    keyExtractor={(item) => item.name}
-                                    style={styles.resultList}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            style={styles.resultItem}
-                                            onPress={() => handleDestinationSelect(item)}
-                                        >
-                                            <Text>{item.name}</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                />
+                        <View style={{ position: 'absolute', bottom: 30, left: 20, right: 20, zIndex: 100 }}>
+                            {showResults && searchResults.length > 0 && (
+                                <View style={styles.resultContainer}>
+                                    <FlatList
+                                        data={searchResults}
+                                        keyExtractor={(item, index) => item.place_id?.toString() ?? index.toString()}
+                                        renderItem={({ item }) => (
+                                            <TouchableOpacity
+                                                onPress={() => handleResultPress(item)}
+                                                style={styles.resultItem}
+                                            >
+                                                <Text>{item.display_name}</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    />
+                                </View>
                             )}
+
+                            <View style={styles.searchBarContainer}>
+                                <View style={styles.searchBar}>
+                                    <Ionicons name="search" size={20} color="black" />
+                                    <TextInput
+                                        placeholder="Où allons-nous ?"
+                                        value={searchText}
+                                        onChangeText={(text) => {
+                                            setSearchText(text);
+                                            fetchSuggestions(text);
+                                        }}
+                                        style={styles.searchInput}
+                                    />
+                                </View>
+                            </View>
                         </View>
                     )}
 
@@ -265,52 +268,50 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: 'white',
     },
-    searchBar: {
+    searchBarContainer: {
         position: 'absolute',
-        bottom: 30,
+        bottom: 20,
         left: 20,
         right: 20,
-        backgroundColor: 'white',
-        borderRadius: 25,
+        zIndex: 10,
+    },
+    searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: 'white',
+        borderRadius: 25,
         paddingHorizontal: 15,
         paddingVertical: 12,
         shadowColor: '#000',
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 4,
-    },
-    searchText: {
-        marginLeft: 10,
-        fontSize: 16,
-        color: 'black',
-    },
-    searchContainer: {
-        position: 'absolute',
-        top: 100,
-        left: 20,
-        right: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 10,
-        zIndex: 10,
+        elevation: 5,
     },
     searchInput: {
-        height: 40,
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-        marginBottom: 5,
+        marginLeft: 10,
+        flex: 1,
+        fontSize: 16,
     },
-    resultList: {
-        maxHeight: 150,
-        zIndex: -1
+    resultContainer: {
+        position: 'absolute',
+        bottom: 100, // au-dessus de la barre de recherche
+        left: 20,
+        right: 20,
+        maxHeight: 200,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        paddingVertical: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 6,
+        zIndex: 20,
     },
     resultItem: {
-        paddingVertical: 10,
+        padding: 15,
         borderBottomWidth: 1,
-        borderColor: '#eee',
-    }
+        borderBottomColor: '#ddd',
+    },
 });
 
 function getDistance(coord1: any, coord2: any) {
