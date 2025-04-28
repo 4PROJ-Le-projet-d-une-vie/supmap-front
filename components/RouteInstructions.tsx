@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import testingData from '../constants/route.json';
 
 interface Props {
     instruction: string | null;
     arrivalTime: string | null;
+    selectedRoute: any | null;
 }
 
-const RouteInstructions: React.FC<Props> = ({ instruction, arrivalTime }) => {
-    if (!instruction || !arrivalTime) return null;
+const RouteInstructions: React.FC<Props> = ({ instruction, arrivalTime, selectedRoute }) => {
+    if (!instruction || !arrivalTime || !selectedRoute) return null;
 
     return (
         <View style={styles.container}>
@@ -16,9 +17,9 @@ const RouteInstructions: React.FC<Props> = ({ instruction, arrivalTime }) => {
             <Text style={styles.informationText}>
                 {arrivalTime}
                 &nbsp; &#11044; &nbsp;
-                {testingData.trip.summary.length.toFixed(0)} km
+                {selectedRoute.summary.length.toFixed(0)} km
                 &nbsp; &#11044; &nbsp;
-                {(testingData.trip.summary.time / 60).toFixed(0)} min
+                {(selectedRoute.summary.time / 60).toFixed(0)} min
             </Text>
         </View>
     );
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         backgroundColor: 'rgba(87,69,138, 1)',
         padding: 15,
-        height: 130,
+        minHeight: 130,
         width: '100%',
     },
     instruction: {

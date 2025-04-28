@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "lat": 49.187566399999994,
+      "lon": -0.34895373150435177,
+      "name": "Abbaye aux Dames",
+      "display_name": "Abbaye aux Dames, Venelle Sainte-Agathe, Saint-Gilles, Caen, Calvados, 14000, France"
+    },
+    {
+      "lat": 49.1874488,
+      "lon": -0.3546474,
+      "name": "Abbaye aux Dames",
+      "display_name": "Abbaye aux Dames, Avenue Reine Mathilde, Saint-Gilles, Caen, Calvados, 14000, France"
+    },
+    {
+      "lat": 49.18654545,
+      "lon": -0.3526498293128191,
+      "name": "Abbaye aux Dames",
+      "display_name": "Abbaye aux Dames, Avenue Reine Mathilde, Saint-Gilles, Caen, Calvados, 14000, France"
+    }
+  ],
+  "message": "success"
+}
