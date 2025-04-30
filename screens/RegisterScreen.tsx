@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, Button } from 'react-native';
+import {View, StyleSheet, Text, TextInput, Button, Alert} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import ApiService from "@/services/ApiService";
+import { saveTokens } from '@/services/AuthStorage'
 
 const RegisterScreen = () => {
     const { login } = useAuth();
     const navigation = useNavigation();
 
     const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
+    const [handle, setHandle] = useState('');
     const [password, setPassword] = useState('');
 
     const handleRegister = () => {
-        if (!email || !username || !password) return;
-
-        // Ici tu peux appeler ton backend pour enregistrer l'utilisateur
-        login({ email, username }); // En attendant, on se connecte directement
-        navigation.navigate('Home');
+        if (!email || !handle || !password) return;
+        ApiService.post('/register', {
+            email: email,
+            handle: handle,
+            password: password
+        }).then(async (response) => {
+            await saveTokens(response.access_token, response.refresh_token);
+            login({ email, handle: email.split('@')[0] });
+            navigation.navigate('Home');
+        }).catch((err) => {
+            Alert.alert('Erreur lors de l\'inscription', 'Code d\'erreur ' + err.status);
+        })
     };
 
     return (
@@ -31,7 +40,7 @@ const RegisterScreen = () => {
             <TextInput
                 placeholder="Nom d'utilisateur"
                 style={styles.input}
-                onChangeText={setUsername}
+                onChangeText={setHandle}
             />
             <TextInput
                 placeholder="Mot de passe"
@@ -39,7 +48,7 @@ const RegisterScreen = () => {
                 secureTextEntry
                 onChangeText={setPassword}
             />
-            <Button title="S'inscrire" onPress={handleRegister} />
+            <Button title="S'inscrire" color={'#57458A'} onPress={handleRegister} />
         </View>
     );
 };
@@ -47,8 +56,8 @@ const RegisterScreen = () => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
+    container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
+    title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20},
     input: {
         borderWidth: 1,
         borderColor: '#aaa',

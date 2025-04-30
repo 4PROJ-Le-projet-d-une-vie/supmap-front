@@ -18,9 +18,9 @@ import testingData from '../constants/route.json';
 import {Ionicons} from "@expo/vector-icons";
 import { useRoute, useNavigation } from '@react-navigation/native';
 import mapDesign from '../constants/mapDesign.json';
-import {debounce} from "@react-navigation/native-stack/src/utils/debounce";
 import testingSearchResults from '../constants/geocodingThreeResults.json'
-const API_URL = "https://ton-api.com/get-route";
+import SideMenu from "@/components/SideMenu";
+import ApiService from "@/services/ApiService";
 
 interface Props {
     selectedRoute: any | null;
@@ -42,6 +42,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const isAuthenticated = auth?.isAuthenticated ?? false;
     const navigation = useNavigation();
     const route = useRoute();
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [userRoutes, setUserRoutes] = useState([]);
 
     useEffect(() => {
         let subscription: any;
@@ -119,7 +121,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         if (!isAuthenticated) {
             navigation.navigate('Login');
         } else {
-            console.log("Utilisateur connecté");
+            navigation.navigate('UserProfile');
         }
     };
 
@@ -128,7 +130,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         setRouteCoords([]);
     }
 
-    const fetchSuggestions = (text: string) => {
+    const fetchSearchResults = () => {
         setSearchResults(testingSearchResults.data)
         setShowResults(true);
     }
@@ -144,8 +146,32 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         navigation.navigate('RouteChoice', { routes: testingData.data });
     };
 
+    const toggleMenu = async () => {
+        if (!menuVisible) {
+            try {
+                const data = await ApiService.get('/user/me/routes');
+                setUserRoutes(data);
+            } catch (e) {
+                console.error('Erreur récupération itinéraires:', e);
+            }
+        }
+        setMenuVisible(!menuVisible);
+    };
+
+    const handleSelectUserRoute = (route: any) => {
+        setMenuVisible(false);
+        fetchRoute(route.destination);
+    };
+
     return (
         <View style={styles.container}>
+            {menuVisible && (
+                <SideMenu
+                    userRoutes={userRoutes}
+                    onSelect={handleSelectUserRoute}
+                    onClose={() => setMenuVisible(false)}
+                />
+            )}
             {region && (
                 <View>
                     <MapView customMapStyle={mapDesign} ref={mapRef} style={styles.map} initialRegion={region} showsUserLocation>
@@ -155,7 +181,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         )}
                     </MapView>
                     {instructions.length == 0 && (
-                        <TouchableOpacity style={styles.menuButton}>
+                        <TouchableOpacity style={styles.menuButton} onPress={toggleMenu}>
                             <Ionicons name="menu" size={28} color="#6a3eb5" />
                         </TouchableOpacity>
                     )}
@@ -165,8 +191,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                             <Image
                                 source={
                                     isAuthenticated
-                                        ? { uri: 'https://i.pravatar.cc/100' } // Remplace par la vraie photo de profil
-                                        : require('../assets/images/default-avatar.png') // À prévoir dans ton projet
+                                        ? { uri: 'https://i.pravatar.cc/100' }
+                                        : require('../assets/images/default-avatar.jpg')
                                 }
                                 style={styles.avatar}
                             />
@@ -200,7 +226,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                                         value={searchText}
                                         onChangeText={(text) => {
                                             setSearchText(text);
-                                            fetchSuggestions(text);
+                                            fetchSearchResults(text);
                                         }}
                                         style={styles.searchInput}
                                     />
@@ -286,6 +312,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         elevation: 5,
+        zIndex: 10,
     },
     searchInput: {
         marginLeft: 10,
@@ -294,7 +321,7 @@ const styles = StyleSheet.create({
     },
     resultContainer: {
         position: 'absolute',
-        bottom: 100, // au-dessus de la barre de recherche
+        bottom: 100,
         left: 20,
         right: 20,
         maxHeight: 200,

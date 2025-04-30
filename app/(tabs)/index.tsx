@@ -1,8 +1,6 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import MapComponent from '../../components/MapComponent';
-import AuthNavigator from "@/components/AuthNavigator";
-import {AuthProvider} from "@/contexts/AuthContext"; // Ajuste le chemin
+import { AuthProvider } from "@/contexts/AuthContext";
 import React from 'react';
 import Navigation from "@/navigation/Navigation";
 

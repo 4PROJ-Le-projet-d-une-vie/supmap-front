@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, Button } from 'react-native';
+import {View, StyleSheet, Text, TextInput, Button, Alert} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
+import ApiService from "@/services/ApiService";
+import {saveTokens} from "@/services/AuthStorage";
 
 const LoginScreen = () => {
     const { login } = useAuth();
@@ -11,16 +13,25 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
 
     const handleLogin = () => {
-        if (!email || !password) return;
-        login({ email, username: email.split('@')[0] }); // Auth fake
-        navigation.navigate('Home');
+        if(!email || !password) return;
+        let request = {password: password};
+        request[email.startsWith('@') ? 'handle' : 'email'] = email;
+        ApiService.post('/login', request).then(async (response) => {
+            await saveTokens(response.access_token, response.refresh_token);
+            login({ email, handle: email.split('@')[0] });
+            navigation.navigate('Home');
+        }).catch((err) => {
+            if (err.status === 401) {
+                Alert.alert('Nom d\'utilisateur ou mot de passe erronés.');
+            } else Alert.alert('Erreur lors de la connexion', 'Code d\'erreur ' + err.status);
+        })
     };
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Connexion</Text>
             <TextInput
-                placeholder="Email"
+                placeholder="Email/Nom d'utilisateur"
                 style={styles.input}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -31,7 +42,7 @@ const LoginScreen = () => {
                 secureTextEntry
                 onChangeText={setPassword}
             />
-            <Button title="Se connecter" onPress={handleLogin} />
+            <Button title="Se connecter" color={'#57458A'} onPress={handleLogin} />
             <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
                 Pas encore de compte ? Inscris-toi
             </Text>
@@ -42,14 +53,14 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', padding: 20 },
+    container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' },
     title: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
     input: {
         borderWidth: 1,
         borderColor: '#aaa',
         padding: 10,
         marginBottom: 15,
-        borderRadius: 8,
+        borderRadius: 8
     },
     link: {
         marginTop: 20,
