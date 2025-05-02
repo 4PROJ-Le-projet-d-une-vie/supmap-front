@@ -1,12 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Animated, Dimensions } from 'react-native';
 import AddUserRoute from "@/components/AddUserRoute";
+import {useAuth} from "@/contexts/AuthContext";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const SideMenu = ({ userRoutes, onSelect, onClose }: any) => {
     const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH)).current;
     const [addUserRouteVisible, setAddUserRouteVisible] = useState(false);
+    const auth = useAuth();
+    const isAuthenticated = auth?.isAuthenticated ?? false;
 
     useEffect(() => {
         Animated.timing(slideAnim, {
@@ -47,16 +50,26 @@ const SideMenu = ({ userRoutes, onSelect, onClose }: any) => {
                 )
             }
             {
-                userRoutes?.length <= 0 && (
+                userRoutes?.length <= 0 && isAuthenticated && (
                     <Text>Aucune route créée</Text>
                 )
             }
 
-            <TouchableOpacity onPress={addUserRoute}>
-                <View style={styles.item}>
-                    <Text>Ajouter</Text>
-                </View>
-            </TouchableOpacity>
+            {
+                userRoutes?.length <= 0 && !isAuthenticated && (
+                    <Text>Veuillez vous connecter pour voir vos itinéraires</Text>
+                )
+            }
+
+            {
+                isAuthenticated && (
+                    <TouchableOpacity onPress={addUserRoute}>
+                        <View style={styles.item}>
+                            <Text>Ajouter</Text>
+                        </View>
+                    </TouchableOpacity>
+                )
+            }
 
             <TouchableOpacity style={styles.closeButton} onPress={closeMenu}>
                 <Text style={styles.closeText}>Fermer</Text>

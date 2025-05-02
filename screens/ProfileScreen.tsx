@@ -5,6 +5,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { getAccessToken } from '@/services/AuthStorage';
 import ApiService from '@/services/ApiService';
+import EditPassword from "@/components/EditPassword";
 
 const ProfileScreen = () => {
     const [profile, setProfile] = useState({
@@ -14,6 +15,7 @@ const ProfileScreen = () => {
         avatar: '',
     });
     const [editing, setEditing] = useState(false);
+    const [editPassword, setEditPassword] = useState(false);
 
     const fetchProfile = async () => {
         const response = await ApiService.get('/user/me');
@@ -48,6 +50,10 @@ const ProfileScreen = () => {
         }
     };
 
+    const handlePressEditPassword = async () => {
+        setEditPassword(!editPassword);
+    }
+
     useEffect(() => {
         fetchProfile();
     }, []);
@@ -78,9 +84,19 @@ const ProfileScreen = () => {
                 onChangeText={(text) => setProfile({ ...profile, handle: text })}
             />
 
+            <TouchableOpacity onPress={handlePressEditPassword}>
+                <Text style={styles.changePassword}>Modifier le mot de passe</Text>
+            </TouchableOpacity>
+
             <Button
                 title={editing ? 'Enregistrer' : 'Modifier'}
                 onPress={editing ? saveChanges : () => setEditing(true)}
+            />
+
+            <EditPassword
+                visible={editPassword}
+                onClose={() => setEditPassword(false)}
+                onSuccess={() => {}}
             />
         </View>
     );
@@ -90,6 +106,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
     avatar: { width: 100, height: 100, borderRadius: 50, alignSelf: 'center' },
     changePhoto: { textAlign: 'center', color: 'blue', marginTop: 8 },
+    changePassword: { textAlign: 'center', color: 'blue', margin: 20 },
     label: { marginTop: 20, fontWeight: 'bold' },
     input: { borderBottomWidth: 1, borderBottomColor: '#ccc', padding: 5 },
     email: { paddingVertical: 10, color: '#555' },

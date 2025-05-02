@@ -149,7 +149,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const toggleMenu = async () => {
         if (!menuVisible) {
             try {
-                const data = await ApiService.get('/user/me/routes');
+                let data = []
+                if (isAuthenticated) data = await ApiService.get('/user/me/routes');
                 setUserRoutes(data);
             } catch (e) {
                 console.error('Erreur récupération itinéraires:', e);
@@ -199,7 +200,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         </TouchableOpacity>
                     )}
 
-                    {instructions.length == 0 && (
+                    {instructions.length == 0 && !menuVisible && (
                         <View style={{ position: 'absolute', bottom: 30, left: 20, right: 20, zIndex: 100 }}>
                             {showResults && searchResults.length > 0 && (
                                 <View style={styles.resultContainer}>
