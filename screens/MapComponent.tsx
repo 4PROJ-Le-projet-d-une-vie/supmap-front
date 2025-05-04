@@ -21,6 +21,7 @@ import mapDesign from '../constants/mapDesign.json';
 import testingSearchResults from '../constants/geocodingThreeResults.json'
 import SideMenu from "@/components/SideMenu";
 import ApiService from "@/services/ApiService";
+import MultiPointInput from "@/components/MultiPointInput";
 
 interface Props {
     selectedRoute: any | null;
@@ -44,6 +45,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const route = useRoute();
     const [menuVisible, setMenuVisible] = useState(false);
     const [userRoutes, setUserRoutes] = useState([]);
+    const [multiplePoints, setMultiplePoints] = useState(false);
 
     useEffect(() => {
         let subscription: any;
@@ -173,21 +175,29 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                     onClose={() => setMenuVisible(false)}
                 />
             )}
+
             {region && (
-                <View>
-                    <MapView customMapStyle={mapDesign} ref={mapRef} style={styles.map} initialRegion={region} showsUserLocation>
+                <>
+                    <MapView
+                        customMapStyle={mapDesign}
+                        ref={mapRef}
+                        style={styles.map}
+                        initialRegion={region}
+                        showsUserLocation
+                    >
                         {location && <Marker coordinate={location} title="Départ" />}
                         {routeCoords.length > 0 && (
                             <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
                         )}
                     </MapView>
-                    {instructions.length == 0 && (
+
+                    {instructions.length === 0 && (
                         <TouchableOpacity style={styles.menuButton} onPress={toggleMenu}>
                             <Ionicons name="menu" size={28} color="#6a3eb5" />
                         </TouchableOpacity>
                     )}
 
-                    {instructions.length == 0 && (
+                    {instructions.length === 0 && (
                         <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
                             <Image
                                 source={
@@ -200,8 +210,17 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         </TouchableOpacity>
                     )}
 
-                    {instructions.length == 0 && !menuVisible && (
-                        <View style={{ position: 'absolute', bottom: 30, left: 20, right: 20, zIndex: 100 }}>
+                    {instructions.length === 0 && !menuVisible && (
+                        <View style={styles.toggleContainer} pointerEvents="box-none">
+                            <Button
+                                title={!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}
+                                onPress={() => setMultiplePoints(!multiplePoints)}
+                            />
+                        </View>
+                    )}
+
+                    {instructions.length === 0 && !menuVisible && !multiplePoints && (
+                        <View style={styles.searchContainer} pointerEvents="box-none">
                             {showResults && searchResults.length > 0 && (
                                 <View style={styles.resultContainer}>
                                     <FlatList
@@ -236,23 +255,27 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         </View>
                     )}
 
-                </View>
+                    {instructions.length === 0 && !menuVisible && multiplePoints && (
+                        <View style={styles.searchContainer} pointerEvents="box-none">
+                            <MultiPointInput onSubmit={fetchRoute} />
+                        </View>
+                    )}
+                </>
             )}
 
-            {loading && (
-                <ActivityIndicator size="large" color="blue" style={styles.loader} />
-            )}
-
-            {
-                instructions.length > 0 && (
-                    <RouteInstructions instruction={instructions[currentInstructionIndex]?.instruction || null} arrivalTime={arrivalTime} selectedRoute={route.params.selectedRoute} />
-                )
-            }
+            {loading && <ActivityIndicator size="large" color="blue" style={styles.loader} />}
 
             {instructions.length > 0 && (
-                <TouchableOpacity style={styles.cancelNavButton} onPress={handleExitNavigation}>
-                    <Ionicons name="exit" size={28} color="#6a3eb5" />
-                </TouchableOpacity>
+                <>
+                    <RouteInstructions
+                        instruction={instructions[currentInstructionIndex]?.instruction || null}
+                        arrivalTime={arrivalTime}
+                        selectedRoute={route.params.selectedRoute}
+                    />
+                    <TouchableOpacity style={styles.cancelNavButton} onPress={handleExitNavigation}>
+                        <Ionicons name="exit" size={28} color="#6a3eb5" />
+                    </TouchableOpacity>
+                </>
             )}
         </View>
     );
@@ -261,9 +284,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     map: { width: '100%', height: '100%' },
-    instructionsContainer: { position: 'absolute', top: 20, backgroundColor: 'rgba(0,0,0,0.7)', padding: 10, borderRadius: 10, width: '90%', alignSelf: 'center' },
-    instruction: { color: '#fff', fontSize: 16, marginVertical: 2 },
     loader: { position: 'absolute', top: '50%', alignSelf: 'center' },
+
     menuButton: {
         position: 'absolute',
         top: 40,
@@ -279,15 +301,6 @@ const styles = StyleSheet.create({
         right: 20,
         zIndex: 2,
     },
-    cancelNavButton: {
-        backgroundColor: 'white',
-        position: 'absolute',
-        bottom: 40,
-        right: 20,
-        zIndex: 2,
-        borderRadius: 20,
-        padding: 10,
-    },
     avatar: {
         width: 44,
         height: 44,
@@ -295,11 +308,21 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: 'white',
     },
-    searchBarContainer: {
+    toggleContainer: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 90,
         left: 20,
         right: 20,
+        zIndex: 110,
+    },
+    searchContainer: {
+        position: 'absolute',
+        bottom: 30,
+        left: 20,
+        right: 20,
+        zIndex: 100,
+    },
+    searchBarContainer: {
         zIndex: 10,
     },
     searchBar: {
@@ -313,7 +336,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         elevation: 5,
-        zIndex: 10,
     },
     searchInput: {
         marginLeft: 10,
@@ -321,10 +343,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     resultContainer: {
-        position: 'absolute',
-        bottom: 100,
-        left: 20,
-        right: 20,
         maxHeight: 200,
         backgroundColor: 'white',
         borderRadius: 10,
@@ -334,31 +352,22 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         elevation: 6,
         zIndex: 20,
+        marginBottom: 10,
     },
     resultItem: {
         padding: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
     },
+    cancelNavButton: {
+        backgroundColor: 'white',
+        position: 'absolute',
+        bottom: 40,
+        right: 20,
+        zIndex: 2,
+        borderRadius: 20,
+        padding: 10,
+    },
 });
-
-function getDistance(coord1: any, coord2: any) {
-    const toRad = (value: any) => (value * Math.PI) / 180;
-
-    const R = 6371e3;
-    const rad1 = toRad(coord1.latitude);
-    const rad2 = toRad(coord2.latitude);
-    const deltaRad = toRad(coord2.latitude - coord1.latitude);
-    const deltaLambda = toRad(coord2.longitude - coord1.longitude);
-
-    const a =
-        Math.sin(deltaRad / 2) * Math.sin(deltaRad / 2) +
-        Math.cos(rad1) * Math.cos(rad2) *
-        Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-}
 
 export default MapComponent;
