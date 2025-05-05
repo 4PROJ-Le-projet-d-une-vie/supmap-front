@@ -1,4 +1,3 @@
-// components/RouteChoiceScreen.tsx
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 

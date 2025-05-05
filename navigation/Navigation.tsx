@@ -2,10 +2,11 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import MapComponent from '../components/MapComponent';
-import LoginScreen from '../components/LoginScreen';
-import RegisterScreen from '../components/RegisterScreen';
-import RouteChoiceScreen from "../components/RouteChoiceScreen";
+import MapComponent from '@/screens/MapComponent';
+import LoginScreen from '@/screens/LoginScreen';
+import RegisterScreen from '@/screens/RegisterScreen';
+import RouteChoiceScreen from "@/screens/RouteChoiceScreen";
+import ProfileScreen from "@/screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ const Navigation = () => {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
             <Stack.Screen name="RouteChoice" component={RouteChoiceScreen} />
+            <Stack.Screen name="UserProfile" component={ProfileScreen} />
         </Stack.Navigator>
     );
 };
