@@ -1,31 +1,28 @@
 import React, { useState } from 'react';
-import {
-    View,
-    TextInput,
-    Button,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-} from 'react-native';
+import {View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList,} from 'react-native';
+import searchResultsTest from '@/constants/geocodingThreeResults.json'
 
 export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) => void }) {
-    const [origin, setOrigin] = useState<any>({});
     const [stops, setStops] = useState<any[]>([]);
     const [destination, setDestination] = useState<any>({});
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showResults, setShowResults] = useState(false);
+    const [currentEditing, setCurrentEditing] = useState<number|null>(null);
 
     const handleSubmit = () => {
-        if (!origin || !destination) return;
-        onSubmit({ origin, stops: stops.filter(s => s.trim()), destination });
+        if (!destination.lat || !destination.lon) return;
+        onSubmit(stops.concat(destination));
     };
 
     const updateStop = (text: string, index: number) => {
         const newStops = [...stops];
-        newStops[index] = text;
+        if (!newStops[index]) newStops[index] = {};
+        newStops[index].name = text;
         setStops(newStops);
+        search(text, index);
     };
 
-    const addStop = () => setStops([...stops, '']);
+    const addStop = () => setStops([...stops, { name: '' }]);
 
     const removeStop = (index: number) => {
         const updated = [...stops];
@@ -33,22 +30,62 @@ export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) =>
         setStops(updated);
     };
 
+    const search = (searchText: string, index: number) => {
+        try {
+            if (searchText === '') {
+                setCurrentEditing(null)
+                setShowResults(false);
+                setSearchResults([])
+            } else {
+                setCurrentEditing(index);
+                setShowResults(true);
+                setSearchResults(searchResultsTest.data)
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const setStopLatLon = (item: any) => {
+        if(currentEditing !== null) {
+            const stop = {
+                latitude: parseFloat(item.lat),
+                longitude : parseFloat(item.lon),
+                name: item.display_name,
+            };
+            let newStops = [...stops];
+            if(currentEditing !== -1) {
+                newStops[currentEditing] = stop
+                setStops(newStops);
+            } else {
+                setDestination(stop)
+            }
+            setShowResults(false);
+            setSearchResults([]);
+        }
+    };
+
     return (
         <View style={styles.container}>
+            {showResults && searchResults.length > 0 && (
+                <View style={styles.resultContainer}>
+                    <FlatList
+                        data={searchResults}
+                        keyExtractor={(item, index) => item.place_id?.toString() ?? index.toString()}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity style={styles.resultItem} onPress={() => setStopLatLon(item)}>
+                                <Text>{item.display_name}</Text>
+                            </TouchableOpacity>
+                        )}
+                    />
+                </View>
+            )}
             <ScrollView contentContainerStyle={styles.form}>
-                <Text style={styles.label}>Point de départ</Text>
-                <TextInput
-                    value={origin.name}
-                    onChangeText={setOrigin}
-                    placeholder="Ex : Paris"
-                    style={styles.input}
-                />
-
                 <Text style={styles.label}>Étapes intermédiaires</Text>
                 {stops.map((stop, idx) => (
                     <View key={idx} style={styles.stopRow}>
                         <TextInput
-                            value={stop.name}
+                            value={stop?.name || ''}
                             onChangeText={(text) => updateStop(text, idx)}
                             placeholder={`Étape ${idx + 1}`}
                             style={[styles.input, { flex: 1 }]}
@@ -65,8 +102,11 @@ export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) =>
 
                 <Text style={styles.label}>Destination</Text>
                 <TextInput
-                    value={destination.name}
-                    onChangeText={setDestination}
+                    value={destination?.name || ''}
+                    onChangeText={(text) => {
+                        setDestination({ ...destination, name: text });
+                        search(text, -1);
+                    }}
                     placeholder="Ex : Marseille"
                     style={styles.input}
                 />
@@ -122,6 +162,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     submitButton: {
+        marginTop: 60,
         backgroundColor: '#004baf',
         paddingVertical: 12,
         paddingHorizontal: 20,
@@ -133,5 +174,16 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '700',
         fontSize: 14,
+    },
+    resultContainer: {
+        marginTop: 8,
+        maxHeight: 150,
+        borderTopWidth: 1,
+        borderTopColor: '#ddd',
+    },
+    resultItem: {
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
     },
 });

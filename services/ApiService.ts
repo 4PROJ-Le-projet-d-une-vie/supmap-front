@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getAccessToken } from './AuthStorage';
-const API_BASE_URL = 'http://192.168.1.49:8080'; // remplace avec ton IP locale ou ton domaine
+const API_BASE_URL = 'http://192.168.1.49:8080';
 
 const api = axios.create({
     baseURL: API_BASE_URL,

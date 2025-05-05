@@ -4,8 +4,6 @@ import {
     StyleSheet,
     Text,
     ActivityIndicator,
-    Button,
-    Alert,
     TouchableOpacity,
     Image,
     TextInput, FlatList, Keyboard
@@ -22,12 +20,14 @@ import testingSearchResults from '../constants/geocodingThreeResults.json'
 import SideMenu from "@/components/SideMenu";
 import ApiService from "@/services/ApiService";
 import MultiPointInput from "@/components/MultiPointInput";
+import SearchResultsList from "@/components/SearchResultsList";
 
 interface Props {
     selectedRoute: any | null;
+    locations: any[] | null;
 }
 
-const MapComponent: React.FC<Props> = ({selectedRoute}) => {
+const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
     const [location, setLocation] = useState(null);
     const [region, setRegion] = useState(null);
     const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
@@ -106,12 +106,17 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         }
     }, [location]);
 
-
-
-    const fetchRoute = async (destination: any) => {
+    const fetchRoute = async (destination: any, displayName: string|null) => {
         if (!location) return;
+        console.log(destination)
+        if (displayName) setSearchText(displayName)
+        let origin = [{latitude: location.latitude, longitude: location.longitude}]
+        let request = origin.concat(destination);
         setLoading(true);
         try {
+            // ApiService.post('/trip', request).then(() => {
+            //     navigation.navigate('RouteChoice', { routes: testingData.data });
+            // })
             navigation.navigate('RouteChoice', { routes: testingData.data });
         } catch (error) {
             console.error("Erreur lors de la récupération de l'itinéraire:", error);
@@ -128,25 +133,21 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     };
 
     const handleExitNavigation = () => {
+        route.params.selectedRoute = null;
+        route.params.locations = [];
         setInstructions([]);
         setRouteCoords([]);
     }
 
-    const fetchSearchResults = () => {
-        setSearchResults(testingSearchResults.data)
-        setShowResults(true);
+    const fetchSearchResults = (text: string) => {
+        if(text === '') {
+            setSearchResults([])
+            setShowResults(false);
+        } else {
+            setSearchResults(testingSearchResults.data)
+            setShowResults(true);
+        }
     }
-
-    const handleResultPress = (item) => {
-        Keyboard.dismiss();
-        setShowResults(false);
-        setSearchText(item.display_name);
-        const destination = {
-            latitude: parseFloat(item.lat),
-            longitude: parseFloat(item.lon),
-        };
-        navigation.navigate('RouteChoice', { routes: testingData.data });
-    };
 
     const toggleMenu = async () => {
         if (!menuVisible) {
@@ -185,7 +186,15 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         initialRegion={region}
                         showsUserLocation
                     >
-                        {location && <Marker coordinate={location} title="Départ" />}
+                        {route.params && route.params.locations && route.params.locations.map((location, index) => (
+                            <Marker
+                                key={index}
+                                coordinate={{ latitude: location.lat, longitude: location.lon }}
+                                title={location.name ? location.name : `Étape ${index + 1}`}
+                                pinColor={index === 0 ? 'green' : index === route.params.locations.length - 1 ? 'red' : 'blue'}
+                            />
+                        ))}
+
                         {routeCoords.length > 0 && (
                             <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
                         )}
@@ -210,32 +219,16 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         </TouchableOpacity>
                     )}
 
-                    {instructions.length === 0 && !menuVisible && (
-                        <View style={styles.toggleContainer} pointerEvents="box-none">
-                            <Button
-                                title={!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}
-                                onPress={() => setMultiplePoints(!multiplePoints)}
-                            />
-                        </View>
+                    {instructions.length === 0 && !menuVisible && !showResults && (
+                        <TouchableOpacity style={styles.toggleContainer} onPress={() => setMultiplePoints(!multiplePoints)}>
+                            <Text style={styles.toggleContainerText}>{!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}</Text>
+                        </TouchableOpacity>
                     )}
 
                     {instructions.length === 0 && !menuVisible && !multiplePoints && (
                         <View style={styles.searchContainer} pointerEvents="box-none">
                             {showResults && searchResults.length > 0 && (
-                                <View style={styles.resultContainer}>
-                                    <FlatList
-                                        data={searchResults}
-                                        keyExtractor={(item, index) => item.place_id?.toString() ?? index.toString()}
-                                        renderItem={({ item }) => (
-                                            <TouchableOpacity
-                                                onPress={() => handleResultPress(item)}
-                                                style={styles.resultItem}
-                                            >
-                                                <Text>{item.display_name}</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                    />
-                                </View>
+                                <SearchResultsList searchResults={searchResults} handleClick={fetchRoute} />
                             )}
 
                             <View style={styles.searchBarContainer}>
@@ -310,10 +303,15 @@ const styles = StyleSheet.create({
     },
     toggleContainer: {
         position: 'absolute',
-        bottom: 90,
-        left: 20,
-        right: 20,
+        bottom: 100,
+        left: 35,
+        right: 35,
         zIndex: 110,
+        backgroundColor: '#004baf',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        alignItems: 'center',
     },
     searchContainer: {
         position: 'absolute',
@@ -367,6 +365,11 @@ const styles = StyleSheet.create({
         zIndex: 2,
         borderRadius: 20,
         padding: 10,
+    },
+    toggleContainerText: {
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 14,
     },
 });
 
