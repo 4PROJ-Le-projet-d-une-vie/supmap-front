@@ -3,11 +3,15 @@ import {
     View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity, Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { getAccessToken } from '@/services/AuthStorage';
+import {clearTokens, saveTokens} from '@/services/AuthStorage';
 import ApiService from '@/services/ApiService';
 import EditPassword from "@/components/EditPassword";
+import {Ionicons} from "@expo/vector-icons";
+import {useAuth} from "@/contexts/AuthContext";
+import {useNavigation} from "@react-navigation/native";
 
 const ProfileScreen = () => {
+    const { logout } = useAuth();
     const [profile, setProfile] = useState({
         handle: '',
         email: '',
@@ -16,6 +20,7 @@ const ProfileScreen = () => {
     });
     const [editing, setEditing] = useState(false);
     const [editPassword, setEditPassword] = useState(false);
+    const navigation = useNavigation();
 
     const fetchProfile = async () => {
         const response = await ApiService.get('/user/me');
@@ -38,7 +43,6 @@ const ProfileScreen = () => {
     };
 
     const saveChanges = async () => {
-        const token = await getAccessToken();
         const body = {
             email: profile.email,
             handle: profile.handle.substring(1),
@@ -46,12 +50,19 @@ const ProfileScreen = () => {
         const response = await ApiService.patch('/user/me', body);
         if (response) {
             Alert.alert('Succès', 'Profil mis à jour.');
+            saveTokens(response.tokens.access_token, response.tokens.refresh_token)
             setEditing(false);
         }
     };
 
     const handlePressEditPassword = async () => {
         setEditPassword(!editPassword);
+    }
+
+    const handleLogout = async () =>{
+        logout()
+        await clearTokens()
+        navigation.navigate('Home');
     }
 
     useEffect(() => {
@@ -66,6 +77,10 @@ const ProfileScreen = () => {
                     style={styles.avatar}
                 />
                 <Text style={styles.changePhoto}>Changer la photo</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Ionicons name="exit" size={28} color="#6a3eb5" />
             </TouchableOpacity>
 
             <Text style={styles.label}>Email</Text>
@@ -110,6 +125,7 @@ const styles = StyleSheet.create({
     label: { marginTop: 20, fontWeight: 'bold' },
     input: { borderBottomWidth: 1, borderBottomColor: '#ccc', padding: 5 },
     email: { paddingVertical: 10, color: '#555' },
+    logoutButton: { position: "absolute", top: 20, right: 20 },
 });
 
 export default ProfileScreen;

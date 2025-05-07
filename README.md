@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Documentation technique frontend OVO
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
@@ -18,10 +18,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 In the output, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Build de développement](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Émulateur Android](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [Simulateur iOS (seulement sur Mac)](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), application mobile servant à tester l'application directement sur votre appareil en scannant le QR code donné par la commande "npx expo start"
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 

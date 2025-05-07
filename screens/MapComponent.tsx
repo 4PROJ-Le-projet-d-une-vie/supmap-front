@@ -5,29 +5,27 @@ import {
     Text,
     ActivityIndicator,
     TouchableOpacity,
-    Image,
-    TextInput, FlatList, Keyboard
+    Image, TextInput, Switch, Modal, Button,
 } from 'react-native';
 import MapView, {LatLng, Marker, Polyline} from 'react-native-maps';
 import * as Location from 'expo-location';
 import RouteInstructions from '../components/RouteInstructions';
 import {useAuth} from "@/contexts/AuthContext";
-import testingData from '../constants/route.json';
 import {Ionicons} from "@expo/vector-icons";
 import { useRoute, useNavigation } from '@react-navigation/native';
 import mapDesign from '../constants/mapDesign.json';
-import testingSearchResults from '../constants/geocodingThreeResults.json'
 import SideMenu from "@/components/SideMenu";
 import ApiService from "@/services/ApiService";
 import MultiPointInput from "@/components/MultiPointInput";
 import SearchResultsList from "@/components/SearchResultsList";
+import testingData from '@/constants/route.json'
+import incidentsDesign from '@/constants/incidentsTypeDesign.json'
 
 interface Props {
     selectedRoute: any | null;
-    locations: any[] | null;
 }
 
-const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
+const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const [location, setLocation] = useState(null);
     const [region, setRegion] = useState(null);
     const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
@@ -46,6 +44,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [userRoutes, setUserRoutes] = useState([]);
     const [multiplePoints, setMultiplePoints] = useState(false);
+    const [avoidTolls, setAvoidTolls] = useState(true);
+    const [incidentTypes, setIncidentTypes] = useState<any[]>([]);
+    const [showIncidentModal, setShowIncidentModal] = useState(false);
+    const [incidents, setIncidents] = useState<any[]>([]);
 
     useEffect(() => {
         let subscription: any;
@@ -56,6 +58,9 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
                 console.log('Permission refusée');
                 return;
             }
+            ApiService.get('/incident/types').then(response => {
+                setIncidentTypes(response);
+            })
 
             subscription = await Location.watchPositionAsync(
                 {
@@ -71,6 +76,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     });
+                    ApiService.get('/incident', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
+                        console.log(response)
+                        setIncidents(response);
+                    }).catch(error => console.log(error));
                 }
             );
         })();
@@ -82,8 +91,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
 
     useEffect(() => {
         if (route.params && route.params.selectedRoute) {
-            setRouteCoords(route.params.selectedRoute.legs[0].shape);
-            setInstructions(route.params.selectedRoute.legs[0].maneuvers);
+            setRouteCoords(route.params.selectedRoute.completeShape);
+            setInstructions(route.params.selectedRoute.completeInstructions);
             const travelTimeSeconds = route.params.selectedRoute.summary.time;
             const arrivalDate = new Date(Date.now() + travelTimeSeconds * 1000);
             const formattedArrivalTime = arrivalDate.toLocaleTimeString([], {
@@ -93,31 +102,49 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
             setArrivalTime(formattedArrivalTime);
         }
         if (!location || instructions.length === 0 || routeCoords.length === 0) return;
-
-        const currentInstruction = instructions[currentInstructionIndex];
-        const endCoord = routeCoords[currentInstruction.end_shape_index];
-
-        if (!endCoord) return;
-
-        const distToEnd = getDistance(location, endCoord);
-
-        if (distToEnd < 15 && currentInstructionIndex < instructions.length - 1) {
-            setCurrentInstructionIndex(prev => prev + 1);
+        const newIndex = getClosestInstructionIndex();
+        if (newIndex !== currentInstructionIndex) {
+            setCurrentInstructionIndex(newIndex);
         }
     }, [location]);
 
+    const getClosestInstructionIndex = () => {
+        let closestIndex = currentInstructionIndex;
+        let minDistance = Infinity;
+        for (let i = currentInstructionIndex; i < instructions.length; i++) {
+            const instr = instructions[i];
+            const begin = instr.begin_shape_index ?? instr.shape_index ?? 0;
+            const end = instr.end_shape_index ?? begin;
+            for (let j = begin; j <= end; j++) {
+                const point = routeCoords[j];
+                if (!point) continue;
+                const distance = getDistance(location, point);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestIndex = i;
+                }
+            }
+        }
+        return minDistance < 30 ? closestIndex : currentInstructionIndex;
+    }
+
     const fetchRoute = async (destination: any, displayName: string|null) => {
         if (!location) return;
-        console.log(destination)
         if (displayName) setSearchText(displayName)
-        let origin = [{latitude: location.latitude, longitude: location.longitude}]
-        let request = origin.concat(destination);
+        let points = [{lat: location.latitude, lon: location.longitude, name: 'Votre position', type: 'break'}]
+        points = points.concat(destination);
+        let request = {
+            costing: "auto",
+            costing_options: {
+                use_tolls: avoidTolls ? 0 : 1
+            },
+            locations: points
+        }
         setLoading(true);
         try {
-            // ApiService.post('/trip', request).then(() => {
-            //     navigation.navigate('RouteChoice', { routes: testingData.data });
-            // })
-            navigation.navigate('RouteChoice', { routes: testingData.data });
+            ApiService.post('/route', request).then((response) => {
+                navigation.navigate('RouteChoice', {routes: response.data});
+            })
         } catch (error) {
             console.error("Erreur lors de la récupération de l'itinéraire:", error);
         }
@@ -134,7 +161,6 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
 
     const handleExitNavigation = () => {
         route.params.selectedRoute = null;
-        route.params.locations = [];
         setInstructions([]);
         setRouteCoords([]);
     }
@@ -144,8 +170,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
             setSearchResults([])
             setShowResults(false);
         } else {
-            setSearchResults(testingSearchResults.data)
-            setShowResults(true);
+            ApiService.get('/geocode', {address: text}).then((response) => {
+                setSearchResults(response.data)
+                setShowResults(true);
+            })
         }
     }
 
@@ -167,6 +195,32 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
         fetchRoute(route.destination);
     };
 
+    const reportIncident = (incidentType: any) => {
+        const request = {
+            lat: location.latitude,
+            lon: location.longitude,
+            type_id: incidentType.id,
+        }
+        ApiService.post('/incident', request).then(response => {
+            setShowIncidentModal(false);
+        }).catch(err => {
+            console.error(err.message);
+        })
+    }
+
+    function getDistance(a: LatLng, b: LatLng): number {
+        const R = 6371e3;
+        const φ1 = a.latitude * Math.PI / 180;
+        const φ2 = b.latitude * Math.PI / 180;
+        const Δφ = (b.latitude - a.latitude) * Math.PI / 180;
+        const Δλ = (b.longitude - a.longitude) * Math.PI / 180;
+
+        const x = Δλ * Math.cos((φ1 + φ2) / 2);
+        const y = Δφ;
+        const d = Math.sqrt(x * x + y * y) * R;
+        return d;
+    }
+
     return (
         <View style={styles.container}>
             {menuVisible && (
@@ -186,18 +240,33 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
                         initialRegion={region}
                         showsUserLocation
                     >
-                        {route.params && route.params.locations && route.params.locations.map((location, index) => (
+                        {route.params && route.params.selectedRoute && route.params.selectedRoute.locations && route.params.selectedRoute.locations.map((location: any, index: number) => (
                             <Marker
                                 key={index}
                                 coordinate={{ latitude: location.lat, longitude: location.lon }}
                                 title={location.name ? location.name : `Étape ${index + 1}`}
-                                pinColor={index === 0 ? 'green' : index === route.params.locations.length - 1 ? 'red' : 'blue'}
+                                pinColor={index === 0 ? 'green' : index === route.params.selectedRoute.locations.length - 1 ? 'red' : 'blue'}
                             />
+                        ))}
+
+                        {incidents.map((incident: any, index: number) => (
+                            <Marker
+                                key={incident.id}
+                                coordinate={{ latitude: incident.lat, longitude: incident.lon }}
+                                title={incident.type.name}
+                            >
+                                <View style={{backgroundColor: incidentsDesign[incident.type.id].color, borderRadius: 10, paddingRight: 5, paddingVertical: 5, height: '100%'}}>
+                                    <Text style={{marginLeft: 5}}>{incidentsDesign[incident.type.id].icon}</Text>
+                                </View>
+                            </Marker>
                         ))}
 
                         {routeCoords.length > 0 && (
                             <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
                         )}
+                        {/*{routeCoords.length > 0 && currentInstructionIndex && (*/}
+                        {/*    <Polyline coordinates={instructions[currentInstructionIndex].indexes} strokeWidth={5} strokeColor="blue" />*/}
+                        {/*)}*/}
                     </MapView>
 
                     {instructions.length === 0 && (
@@ -243,6 +312,16 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
                                         }}
                                         style={styles.searchInput}
                                     />
+                                    <View style={styles.tollToggleButton}>
+                                        <Text style={styles.tollText}>Éviter les péages</Text>
+                                        <Switch
+                                            trackColor={{ false: '#767577', true: '#81b0ff' }}
+                                            thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
+                                            ios_backgroundColor="#3e3e3e"
+                                            onValueChange={() => setAvoidTolls(!avoidTolls)}
+                                            value={avoidTolls}
+                                        />
+                                    </View>
                                 </View>
                             </View>
                         </View>
@@ -250,7 +329,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
 
                     {instructions.length === 0 && !menuVisible && multiplePoints && (
                         <View style={styles.searchContainer} pointerEvents="box-none">
-                            <MultiPointInput onSubmit={fetchRoute} />
+                            <MultiPointInput onSubmit={fetchRoute} avoidTolls={avoidTolls} setAvoidTolls={setAvoidTolls} />
                         </View>
                     )}
                 </>
@@ -270,6 +349,26 @@ const MapComponent: React.FC<Props> = ({selectedRoute, locations}) => {
                     </TouchableOpacity>
                 </>
             )}
+
+            {instructions.length > 0  && (
+                <TouchableOpacity style={styles.incidentButton} onPress={() => setShowIncidentModal(true)}>
+                    <Text style={styles.incidentButtonText}>🚧 Signaler un incident</Text>
+                </TouchableOpacity>
+            )}
+
+            <Modal visible={showIncidentModal} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Sélectionnez un incident</Text>
+                        {incidentTypes.map((type) => (
+                            <TouchableOpacity key={type.id} style={styles.incidentTypeButton} onPress={() => reportIncident(type)}>
+                                <Text>{type.name}</Text>
+                            </TouchableOpacity>
+                        ))}
+                        <Button title="Annuler" onPress={() => setShowIncidentModal(false)} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -371,6 +470,60 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 14,
     },
+    tollToggleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginLeft: 12,
+    },
+    tollText: {
+        fontSize: 14,
+        color: '#333',
+        marginRight: 4,
+    },
+    incidentButton: {
+        position: 'absolute',
+        bottom: 100,
+        alignSelf: 'center',
+        backgroundColor: '#ffcc00',
+        padding: 12,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
+    },
+
+    incidentButtonText: {
+        fontWeight: '600',
+        fontSize: 14,
+    },
+
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        margin: 20,
+        borderRadius: 12,
+    },
+
+    modalTitle: {
+        fontWeight: '700',
+        fontSize: 16,
+        marginBottom: 10,
+    },
+
+    incidentTypeButton: {
+        padding: 12,
+        backgroundColor: '#f2f2f2',
+        marginVertical: 5,
+        borderRadius: 8,
+    },
+
 });
 
 export default MapComponent;

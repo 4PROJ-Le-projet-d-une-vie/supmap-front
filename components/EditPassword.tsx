@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {Modal, View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, Alert} from 'react-native';
+import React, {useState} from 'react';
+import {Modal, View, TextInput, Button, StyleSheet, Text, Alert} from 'react-native';
 import ApiService from '@/services/ApiService';
-import testingSearchResults from '../constants/geocodingThreeResults.json'
+import { saveTokens } from '@/services/AuthStorage';
 
 const EditPassword = ({ visible, onClose, onSuccess }: any) => {
     const [loading, setLoading] = useState(false);
@@ -12,14 +12,15 @@ const EditPassword = ({ visible, onClose, onSuccess }: any) => {
     const handleAddRoute = async () => {
         try {
             setLoading(true);
-            await ApiService.patch('/user/me/update-password', {
+            const response = await ApiService.patch('/user/me/update-password', {
                 new: newPassword,
                 old: actualPassword
             });
+            saveTokens(response.tokens.access_token, response.tokens.refresh_token);
             onSuccess();
             onClose();
         } catch (err: any) {
-            Alert.alert('Erreur lors de l\'inscription', 'Code d\'erreur ' + err.status);
+            Alert.alert('Erreur lors de la modification du mot de passe', 'Code d\'erreur ' + err.status);
         } finally {
             setLoading(false);
         }

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import {View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList,} from 'react-native';
-import searchResultsTest from '@/constants/geocodingThreeResults.json'
+import {View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Switch,} from 'react-native';
+import ApiService from "@/services/ApiService";
 
-export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) => void }) {
+export default function MultiPointInput({ onSubmit, avoidTolls, setAvoidTolls }: { onSubmit: (data: any) => void, avoidTolls: boolean, setAvoidTolls:(data: boolean) => void }) {
     const [stops, setStops] = useState<any[]>([]);
     const [destination, setDestination] = useState<any>({});
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -37,9 +37,11 @@ export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) =>
                 setShowResults(false);
                 setSearchResults([])
             } else {
-                setCurrentEditing(index);
-                setShowResults(true);
-                setSearchResults(searchResultsTest.data)
+                ApiService.get('/geocode', {address: searchText}).then((response) => {
+                    setSearchResults(response.data)
+                    setShowResults(true);
+                    setCurrentEditing(index);
+                })
             }
         } catch (error) {
             console.log(error)
@@ -48,13 +50,15 @@ export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) =>
 
     const setStopLatLon = (item: any) => {
         if(currentEditing !== null) {
-            const stop = {
-                latitude: parseFloat(item.lat),
-                longitude : parseFloat(item.lon),
+            let stop = {
+                lat: parseFloat(item.lat),
+                lon : parseFloat(item.lon),
                 name: item.display_name,
+                type: 'break',
             };
             let newStops = [...stops];
             if(currentEditing !== -1) {
+                stop.type = 'via'
                 newStops[currentEditing] = stop
                 setStops(newStops);
             } else {
@@ -110,6 +114,16 @@ export default function MultiPointInput({ onSubmit }: { onSubmit: (data: any) =>
                     placeholder="Ex : Marseille"
                     style={styles.input}
                 />
+                <View style={styles.tollToggleButton}>
+                    <Text style={styles.tollText}>Éviter les péages</Text>
+                    <Switch
+                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                        thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={() => setAvoidTolls(!avoidTolls)}
+                        value={avoidTolls}
+                    />
+                </View>
 
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                     <Text style={styles.submitButtonText}>VALIDER L'ITINÉRAIRE</Text>
@@ -186,4 +200,15 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
+    tollToggleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginLeft: 5,
+    },
+    tollText: {
+        fontSize: 14,
+        color: '#333',
+        marginRight: 4,
+    }
 });

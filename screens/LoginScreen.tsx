@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {View, StyleSheet, Text, TextInput, Button, Alert} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import ApiService from "@/services/ApiService";
 import {saveTokens} from "@/services/AuthStorage";
 
@@ -21,6 +21,7 @@ const LoginScreen = () => {
             login({ email, handle: email.split('@')[0] });
             navigation.navigate('Home');
         }).catch((err) => {
+            console.log(err)
             if (err.status === 401) {
                 Alert.alert('Nom d\'utilisateur ou mot de passe erronés.');
             } else Alert.alert('Erreur lors de la connexion', 'Code d\'erreur ' + err.status);

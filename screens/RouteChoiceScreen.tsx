@@ -5,7 +5,15 @@ const RouteChoiceScreen = ({ route, navigation }) => {
     const { routes } = route.params;
 
     const handleSelect = (selectedRoute) => {
-        navigation.navigate('Home', { selectedRoute: selectedRoute, locations: routes[0].locations });
+        let completeShape = [];
+        let completeInstructions = []
+        for(let leg of selectedRoute.legs) {
+            completeShape = completeShape.concat(leg.shape);
+            completeInstructions = completeInstructions.concat(leg.maneuvers);
+        }
+        selectedRoute.completeShape = completeShape;
+        selectedRoute.completeInstructions = completeInstructions;
+        navigation.navigate('Home', { selectedRoute: selectedRoute });
     };
 
     return (

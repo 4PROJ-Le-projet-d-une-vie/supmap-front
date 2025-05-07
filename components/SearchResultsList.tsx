@@ -9,8 +9,10 @@ const SearchResultsList: React.FC<Props> = ({searchResults, handleClick}) => {
     const handleResultPress = async (item: any) => {
         Keyboard.dismiss();
         const destination = {
-            latitude: parseFloat(item.lat),
-            longitude: parseFloat(item.lon),
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            name: item.display_name,
+            type: 'break'
         };
         await handleClick([destination],item.display_name);
     };

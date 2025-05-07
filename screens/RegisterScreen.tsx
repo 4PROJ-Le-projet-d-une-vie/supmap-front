@@ -20,7 +20,7 @@ const RegisterScreen = () => {
             handle: handle,
             password: password
         }).then(async (response) => {
-            await saveTokens(response.access_token, response.refresh_token);
+            await saveTokens(response.tokens.access_token, response.tokens.refresh_token);
             login({ email, handle: email.split('@')[0] });
             navigation.navigate('Home');
         }).catch((err) => {
