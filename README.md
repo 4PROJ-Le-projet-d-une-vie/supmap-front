@@ -1,50 +1,45 @@
 # Documentation technique frontend OVO
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+# Sommaire
+1. [Choix des technologies](#choix-des-technologies)
+2. [Communication avec l'API](#example2)
+3. [Structure écrans/components](#fourth-examplehttpwwwfourthexamplecom)
+4. [Carte](#carte)
+5. [Recalcul automatique des itinéraires](#third-example)
+6. [Démarrer et tester l'application](#démarrage)
 
-1. Install dependencies
+## Choix des technologies
+
+Les technologies choisies pour l'application OVO sont : 
+- React Native, framework Javascript adapté au développement mobile
+- Expo, plateforme servant au développement, build et déploiement de l'application
+- Axios, librairie NodeJS pour faire les appels d'API
+- React Native Map, librairie permettant l'affichage et manipulation de la carte
+
+## Communication avec l'API
+
+
+
+## Démarrage
+
+1. Installer les dépendances
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Démarrer le serveur expo
 
    ```bash
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Pour tester l'application voici les différentes options :
 
 - [Build de développement](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Émulateur Android](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [Simulateur iOS (seulement sur Mac)](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), application mobile servant à tester l'application directement sur votre appareil en scannant le QR code donné par la commande "npx expo start"
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

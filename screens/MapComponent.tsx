@@ -1,24 +1,27 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
-    View,
-    StyleSheet,
-    Text,
     ActivityIndicator,
+    Button,
+    Image,
+    Modal,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
     TouchableOpacity,
-    Image, TextInput, Switch, Modal, Button,
+    View
 } from 'react-native';
 import MapView, {LatLng, Marker, Polyline} from 'react-native-maps';
 import * as Location from 'expo-location';
 import RouteInstructions from '../components/RouteInstructions';
 import {useAuth} from "@/contexts/AuthContext";
 import {Ionicons} from "@expo/vector-icons";
-import { useRoute, useNavigation } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import mapDesign from '../constants/mapDesign.json';
 import SideMenu from "@/components/SideMenu";
 import ApiService from "@/services/ApiService";
 import MultiPointInput from "@/components/MultiPointInput";
 import SearchResultsList from "@/components/SearchResultsList";
-import testingData from '@/constants/route.json'
 import incidentsDesign from '@/constants/incidentsTypeDesign.json'
 
 interface Props {
@@ -26,12 +29,14 @@ interface Props {
 }
 
 const MapComponent: React.FC<Props> = ({selectedRoute}) => {
+    const [initialLoaded, setInitialLoaded] = useState(false);
     const [location, setLocation] = useState(null);
     const [region, setRegion] = useState(null);
     const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
     const [instructions, setInstructions] = useState<any[]>([]);
-    const [arrivalTime, setArrivalTime] = useState<string | null>(null);
-    const [currentInstructionIndex, setCurrentInstructionIndex] = useState(0);
+    const [currentInstruction, setCurrentInstruction] = useState(0);
+    const [currentInstructionPolyline, setCurrentInstructionPolyline] = useState<any[]>([]);
+    const [passedPoints, setPassedPoints] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<any>([]);
@@ -44,14 +49,22 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [userRoutes, setUserRoutes] = useState([]);
     const [multiplePoints, setMultiplePoints] = useState(false);
-    const [avoidTolls, setAvoidTolls] = useState(true);
+    const [avoidTolls, setAvoidTolls] = useState(false);
     const [incidentTypes, setIncidentTypes] = useState<any[]>([]);
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [incidents, setIncidents] = useState<any[]>([]);
 
+    const ws = new WebSocket("ws://192.168.1.219:8082");
+
+    // setInterval(() => {
+    //     console.log(location)
+    //     ApiService.get('/incident', {lat: location.latitude, lon: location.longitude, radius: 500}).then(response => {
+    //         setIncidents(response);
+    //     })
+    // }, 300000)
+
     useEffect(() => {
         let subscription: any;
-
         (async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
@@ -76,10 +89,18 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     });
-                    ApiService.get('/incident', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
-                        console.log(response)
-                        setIncidents(response);
-                    }).catch(error => console.log(error));
+
+                    mapRef.current?.animateToRegion({
+                        latitude: loc.coords.latitude,
+                        longitude: loc.coords.longitude,
+                        latitudeDelta: 0.005,
+                        longitudeDelta: 0.005,
+                    });
+                    if(!initialLoaded) {
+                        ApiService.get('/incident', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
+                            setIncidents(response);
+                        })
+                    }
                 }
             );
         })();
@@ -93,39 +114,90 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         if (route.params && route.params.selectedRoute) {
             setRouteCoords(route.params.selectedRoute.completeShape);
             setInstructions(route.params.selectedRoute.completeInstructions);
-            const travelTimeSeconds = route.params.selectedRoute.summary.time;
-            const arrivalDate = new Date(Date.now() + travelTimeSeconds * 1000);
-            const formattedArrivalTime = arrivalDate.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-            setArrivalTime(formattedArrivalTime);
-        }
-        if (!location || instructions.length === 0 || routeCoords.length === 0) return;
-        const newIndex = getClosestInstructionIndex();
-        if (newIndex !== currentInstructionIndex) {
-            setCurrentInstructionIndex(newIndex);
-        }
-    }, [location]);
 
-    const getClosestInstructionIndex = () => {
-        let closestIndex = currentInstructionIndex;
-        let minDistance = Infinity;
-        for (let i = currentInstructionIndex; i < instructions.length; i++) {
-            const instr = instructions[i];
-            const begin = instr.begin_shape_index ?? instr.shape_index ?? 0;
-            const end = instr.end_shape_index ?? begin;
-            for (let j = begin; j <= end; j++) {
-                const point = routeCoords[j];
-                if (!point) continue;
-                const distance = getDistance(location, point);
+            if (!location || !routeCoords || !instructions) return;
+            ws.onopen = () => {
+                ws.send(location)
+            }
+
+            ws.onmessage = (response) => {
+                console.log(response);
+            }
+            const userPosition = {
+                latitude: location.latitude,
+                longitude: location.longitude,
+            };
+            let minDistance = Infinity;
+            let closestPointIndex = 0;
+            routeCoords.forEach((point: any, index: number) => {
+                const distance = getDistance(userPosition, {
+                    latitude: point.latitude,
+                    longitude: point.longitude,
+                });
                 if (distance < minDistance) {
                     minDistance = distance;
-                    closestIndex = i;
+                    closestPointIndex = index;
+                }
+            });
+            let remainingDistance = 0;
+            for (let i = closestPointIndex; i < routeCoords.length - 1; i++) {
+                remainingDistance += getDistance(routeCoords[i], routeCoords[i + 1]);
+            }
+            for (let i = 0; i < instructions.length; i++) {
+                const previousEnd = i === 0 ? -1 : instructions[i - 1].end_shape_index;
+                if (
+                    closestPointIndex > previousEnd &&
+                    closestPointIndex <= instructions[i].end_shape_index
+                ) {
+                    let newInstructionPolyline = [];
+                    let newPassedPoints = []
+                    for(let j = instructions[i+1].begin_shape_index; j < instructions[i+1].end_shape_index; j++) {
+                        newInstructionPolyline.push(routeCoords[j]);
+                    }
+                    for(let j = 0; j < findClosestPolylineIndex(); j++) {
+                        newPassedPoints.push(routeCoords[j]);
+                    }
+                    let remainingDuration = 0;
+                    if (i !== -1) {
+                        for (let j = i; j < instructions.length; j++) {
+                            remainingDuration += instructions[j].time;
+                        }
+                    }
+
+                    const arrivalDate = new Date(Date.now() + remainingDuration * 1000);
+                    const formattedArrivalTime = arrivalDate.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    });
+
+                    instructions[i+1]['distanceTo'] = getDistance(userPosition, routeCoords[instructions[i + 1].end_shape_index]);
+                    instructions[i+1]['remainingDistance'] = remainingDistance;
+                    instructions[i+1]['remainingDuration'] = remainingDuration;
+                    instructions[i+1]['arrivalTime'] = formattedArrivalTime;
+                    setCurrentInstructionPolyline(newInstructionPolyline);
+                    setPassedPoints(newPassedPoints);
+                    setCurrentInstruction(instructions[i+1]);
+                    break;
                 }
             }
         }
-        return minDistance < 30 ? closestIndex : currentInstructionIndex;
+    }, [location]);
+
+    const findClosestPolylineIndex = () => {
+        let minDistance = Infinity;
+        let closestIndex = 0;
+        routeCoords.forEach((point: any, index: any) => {
+            const distance = getDistance(
+                { latitude: location.latitude, longitude: location.longitude },
+                { latitude: point.latitude, longitude: point.longitude }
+            );
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestIndex = index;
+            }
+        });
+
+        return closestIndex;
     }
 
     const fetchRoute = async (destination: any, displayName: string|null) => {
@@ -203,8 +275,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         }
         ApiService.post('/incident', request).then(response => {
             setShowIncidentModal(false);
-        }).catch(err => {
-            console.error(err.message);
+            setIncidents([...incidents, response]);
         })
     }
 
@@ -249,7 +320,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                             />
                         ))}
 
-                        {incidents.map((incident: any, index: number) => (
+                        {incidents.map((incident: any) => (
                             <Marker
                                 key={incident.id}
                                 coordinate={{ latitude: incident.lat, longitude: incident.lon }}
@@ -261,12 +332,16 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                             </Marker>
                         ))}
 
+                        {passedPoints.length > 0 && (
+                            <Polyline coordinates={passedPoints} strokeWidth={5} strokeColor="grey" zIndex={0}/>
+                        )}
+                        {currentInstructionPolyline.length > 0 && currentInstruction !== null && (
+                            <Polyline coordinates={currentInstructionPolyline} strokeWidth={4} strokeColor="white" zIndex={1}/>
+                        )}
+
                         {routeCoords.length > 0 && (
                             <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
                         )}
-                        {/*{routeCoords.length > 0 && currentInstructionIndex && (*/}
-                        {/*    <Polyline coordinates={instructions[currentInstructionIndex].indexes} strokeWidth={5} strokeColor="blue" />*/}
-                        {/*)}*/}
                     </MapView>
 
                     {instructions.length === 0 && (
@@ -340,9 +415,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
             {instructions.length > 0 && (
                 <>
                     <RouteInstructions
-                        instruction={instructions[currentInstructionIndex]?.instruction || null}
-                        arrivalTime={arrivalTime}
-                        selectedRoute={route.params.selectedRoute}
+                        instruction={currentInstruction || null}
                     />
                     <TouchableOpacity style={styles.cancelNavButton} onPress={handleExitNavigation}>
                         <Ionicons name="exit" size={28} color="#6a3eb5" />
@@ -352,7 +425,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
 
             {instructions.length > 0  && (
                 <TouchableOpacity style={styles.incidentButton} onPress={() => setShowIncidentModal(true)}>
-                    <Text style={styles.incidentButtonText}>🚧 Signaler un incident</Text>
+                    <Image style={{resizeMode: 'stretch', height: 40, width: 40, bottom: 9, right: 7}} source={require('../assets/images/incidentAddButton.png')}/>
                 </TouchableOpacity>
             )}
 
@@ -361,8 +434,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Sélectionnez un incident</Text>
                         {incidentTypes.map((type) => (
-                            <TouchableOpacity key={type.id} style={styles.incidentTypeButton} onPress={() => reportIncident(type)}>
-                                <Text>{type.name}</Text>
+                            <TouchableOpacity key={type.id} style={{padding: 12, backgroundColor: incidentsDesign[type.id].color, marginVertical: 5, borderRadius: 8}} onPress={() => reportIncident(type)}>
+                                <Text>{type.name} {incidentsDesign[type.id].icon}</Text>
                             </TouchableOpacity>
                         ))}
                         <Button title="Annuler" onPress={() => setShowIncidentModal(false)} />
@@ -483,21 +556,15 @@ const styles = StyleSheet.create({
     },
     incidentButton: {
         position: 'absolute',
-        bottom: 100,
+        bottom: 40,
+        left: 20,
         alignSelf: 'center',
-        backgroundColor: '#ffcc00',
+        backgroundColor: 'white',
         padding: 12,
         borderRadius: 20,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
+        height: 50,
+        width: 50,
     },
-
-    incidentButtonText: {
-        fontWeight: '600',
-        fontSize: 14,
-    },
-
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -516,14 +583,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
-
-    incidentTypeButton: {
-        padding: 12,
-        backgroundColor: '#f2f2f2',
-        marginVertical: 5,
-        borderRadius: 8,
-    },
-
 });
 
 export default MapComponent;
