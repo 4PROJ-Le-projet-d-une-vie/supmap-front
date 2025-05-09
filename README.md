@@ -129,7 +129,47 @@ const styles = StyleSheet.create({
 
 ## Carte
 
+Pour afficher la carte et tout ce qui y est lié, c'est à dire les markers d'incidents, départ et arrivé, ainsi que le tracé du trajet, nous nous servons de la librairie React Native Map. 
 
+La carte se définit comme ceci dans le code :
+```typescript
+<MapView
+   customMapStyle={mapDesign}
+   ref={mapRef}
+   style={styles.map}
+   initialRegion={region}
+   showsUserLocation
+>
+```
+- customMapStyle permet d'appliquer un design personnalisé à la carte
+- ref permet d'appliquer plusieurs paramètres à la carte, notamment le fait de suivre l'utilisateur lorsqu'il se déplace
+- initialRegion sert à définir la position de base sur la carte au lancement de l'application
+- showUserLocation sert à faire ce que son nom indique, soit afficher la position de l'utilisateur
+
+Les Polylines, ou tracés, se définissent comme ceci :
+```typescript
+<Polyline coordinates={polyline} strokeWidth={5} strokeColor="blue" />
+```
+- coordinates attend un tableau d'objets sous la forme ci-dessous, à partir de ceci la ligne se dessine sur la carte
+```json
+{"latitude": number, "longitude": number}
+```
+- strokeWidth permet de définir la largeur de la ligne
+- strokeColor permet de définir la couleur de la ligne
+
+Les Markers, ou points sur la carte se définissent comme ceci :
+```typescript
+<Marker
+    key={index}
+    coordinate={{ latitude: location.lat, longitude: location.lon }}
+    title={location.name ? location.name : `Étape ${index + 1}`}
+    pinColor={index === 0 ? 'green' : index === route.params.selectedRoute.locations.length - 1 ? 'red' : 'blue'}
+/>
+```
+- key sert à donner un identifiant au marker
+- coordinate sert à définir l'emplacement du marker
+- title sert à définir quel texte sera afficher lorsque l'utilisateur cliquera sur le marker
+- pinColor définit la couleur du marker
 
 ## Recalcul automatique des itinéraires
 

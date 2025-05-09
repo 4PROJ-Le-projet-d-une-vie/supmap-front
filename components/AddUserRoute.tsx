@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Modal, View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity} from 'react-native';
 import ApiService from '@/services/ApiService';
-import testingSearchResults from '../constants/geocodingThreeResults.json'
 
 const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
     const [name, setName] = useState('');
@@ -39,9 +38,15 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
     }
 
     const fetchSearchResults = () => {
-        setSearchResults(testingSearchResults.data)
-        setShowResults(true);
-        console.log(searchResults);
+        if(searchDestinationText === '') {
+            setSearchResults([])
+            setShowResults(false);
+        } else {
+            ApiService.get('/geocode', {address: searchDestinationText}).then((response) => {
+                setSearchResults(response.data)
+                setShowResults(true);
+            })
+        }
     }
 
     return (

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Button, Image, Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Button, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import MapView, {LatLng, Marker, Polyline} from 'react-native-maps';
 import * as Location from 'expo-location';
 import RouteInstructions from '../components/RouteInstructions';
@@ -7,7 +7,6 @@ import {useAuth} from "@/contexts/AuthContext";
 import {Ionicons} from "@expo/vector-icons";
 import {useNavigation, useRoute} from '@react-navigation/native';
 import mapDesign from '../constants/mapDesign.json';
-import UserRoutesSideMenu from "@/components/UserRoutesSideMenu";
 import ApiService from "@/services/ApiService";
 import MultiPointInput from "@/components/MultiPointInput";
 import SearchResultsList from "@/components/SearchResultsList";
@@ -19,7 +18,7 @@ interface Props {
     defaultSearchText: string | null;
 }
 
-const MapComponent: React.FC<Props> = ({selectedRoute, defaultSearchText}) => {
+const MapComponent: React.FC<Props> = ({}) => {
     const [initialLoaded, setInitialLoaded] = useState(false);
     const [location, setLocation] = useState(null);
     const [region, setRegion] = useState(null);
@@ -276,15 +275,14 @@ const MapComponent: React.FC<Props> = ({selectedRoute, defaultSearchText}) => {
 
     function getDistance(a: LatLng, b: LatLng): number {
         const R = 6371e3;
-        const φ1 = a.latitude * Math.PI / 180;
-        const φ2 = b.latitude * Math.PI / 180;
-        const Δφ = (b.latitude - a.latitude) * Math.PI / 180;
-        const Δλ = (b.longitude - a.longitude) * Math.PI / 180;
+        const phi1 = a.latitude * Math.PI / 180;
+        const phi2 = b.latitude * Math.PI / 180;
+        const deltaPhi = (b.latitude - a.latitude) * Math.PI / 180;
+        const deltaLambda = (b.longitude - a.longitude) * Math.PI / 180;
 
-        const x = Δλ * Math.cos((φ1 + φ2) / 2);
-        const y = Δφ;
-        const d = Math.sqrt(x * x + y * y) * R;
-        return d;
+        const x = deltaLambda * Math.cos((phi1 + phi2) / 2);
+        const y = deltaPhi;
+        return Math.sqrt(x * x + y * y) * R;
     }
 
     return (
@@ -432,7 +430,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute, defaultSearchText}) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    map: { width: '100%', height: '100%' },
+    map: { width: '120%', height: '120%' },
     loader: { position: 'absolute', top: '50%', alignSelf: 'center' },
     menuButton: {
         position: 'absolute',
