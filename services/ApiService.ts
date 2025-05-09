@@ -1,9 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import {
-    getAccessToken,
-    getRefreshToken,
-    saveTokens
-} from './AuthStorage';
+import {getAccessToken, getRefreshToken, saveTokens} from './AuthStorage';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 

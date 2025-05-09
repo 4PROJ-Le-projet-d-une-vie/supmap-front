@@ -43,7 +43,8 @@ const styles = StyleSheet.create({
         fontSize: 20,
         marginVertical: 4,
         marginTop: 40,
-        width: '80%'
+        width: '80%',
+        fontWeight: 'bold',
     },
     instructionDistance: {
         color: 'white',

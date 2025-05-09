@@ -23,7 +23,7 @@ const ProfileScreen = () => {
     const navigation = useNavigation();
 
     const fetchProfile = async () => {
-        const response = await ApiService.get('/user/me');
+        const response = await ApiService.get('/users/me');
         if (response) {
             setProfile(response);
         }
@@ -47,7 +47,7 @@ const ProfileScreen = () => {
             email: profile.email,
             handle: profile.handle.substring(1),
         };
-        const response = await ApiService.patch('/user/me', body);
+        const response = await ApiService.patch('/users/me', body);
         if (response) {
             Alert.alert('Succès', 'Profil mis à jour.');
             saveTokens(response.tokens.access_token, response.tokens.refresh_token)

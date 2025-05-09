@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {View, TextInput, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Switch,} from 'react-native';
 import ApiService from "@/services/ApiService";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-export default function MultiPointInput({ onSubmit, avoidTolls, setAvoidTolls }: { onSubmit: (data: any) => void, avoidTolls: boolean, setAvoidTolls:(data: boolean) => void }) {
+export default function MultiPointInput({ onSubmit, onCancel, avoidTolls, setAvoidTolls }: { onSubmit: (data: any) => void, onCancel: (data: any) => void, avoidTolls: boolean, setAvoidTolls:(data: boolean) => void }) {
     const [stops, setStops] = useState<any[]>([]);
     const [destination, setDestination] = useState<any>({});
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -13,6 +14,10 @@ export default function MultiPointInput({ onSubmit, avoidTolls, setAvoidTolls }:
         if (!destination.lat || !destination.lon) return;
         onSubmit(stops.concat(destination));
     };
+
+    const handleCancel = () => {
+        onCancel(false);
+    }
 
     const updateStop = (text: string, index: number) => {
         const newStops = [...stops];
@@ -129,6 +134,9 @@ export default function MultiPointInput({ onSubmit, avoidTolls, setAvoidTolls }:
                     <Text style={styles.submitButtonText}>VALIDER L'ITINÉRAIRE</Text>
                 </TouchableOpacity>
             </ScrollView>
+            <TouchableOpacity style={{position: 'absolute', top: 10, right: 10}} onPress={handleCancel}>
+                <MaterialIcons name={'cancel'} size={30} color={'rgba(87,69,138, 1)'} />
+            </TouchableOpacity>
         </View>
     );
 }
@@ -176,7 +184,6 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     submitButton: {
-        marginTop: 60,
         backgroundColor: '#004baf',
         paddingVertical: 12,
         paddingHorizontal: 20,

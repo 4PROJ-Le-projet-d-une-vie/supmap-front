@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const RouteChoiceScreen = ({ route, navigation }) => {
-    const { routes } = route.params;
+    const { routes, searchText } = route.params;
 
     const handleSelect = (selectedRoute) => {
         let completeShape = [];
@@ -15,6 +16,10 @@ const RouteChoiceScreen = ({ route, navigation }) => {
         selectedRoute.completeInstructions = completeInstructions;
         navigation.navigate('Home', { selectedRoute: selectedRoute });
     };
+
+    const handleCancel = () => {
+        navigation.navigate('Home', { defaultSearchText: searchText });
+    }
 
     return (
         <View style={styles.container}>
@@ -30,6 +35,9 @@ const RouteChoiceScreen = ({ route, navigation }) => {
                     </TouchableOpacity>
                 )}
             />
+            <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                <MaterialIcons name={'cancel'} color={'rgba(87,69,138, 1)'} size={30} />
+            </TouchableOpacity>
         </View>
     );
 };
@@ -48,6 +56,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 5,
     },
+    cancelButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20
+    }
 });
 
 export default RouteChoiceScreen;

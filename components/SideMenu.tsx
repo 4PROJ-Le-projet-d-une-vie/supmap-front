@@ -1,15 +1,17 @@
 import React, {useEffect, useRef, useState} from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Animated, Dimensions } from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, Switch} from 'react-native';
 import AddUserRoute from "@/components/AddUserRoute";
 import {useAuth} from "@/contexts/AuthContext";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import UserRoutesSideMenu from "@/components/UserRoutesSideMenu";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-const SideMenu = ({ userRoutes, onSelect, onClose }: any) => {
+const SideMenu = ({ userRoutes, onSelect, onClose, avoidTolls, setAvoidTolls, multiplePoints, setMultiplePoints }: any) => {
     const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH)).current;
-    const [addUserRouteVisible, setAddUserRouteVisible] = useState(false);
     const auth = useAuth();
     const isAuthenticated = auth?.isAuthenticated ?? false;
+    const [displayUsersRoutes, setDisplayUsersRoute] = useState(false);
 
     useEffect(() => {
         Animated.timing(slideAnim, {
@@ -29,58 +31,45 @@ const SideMenu = ({ userRoutes, onSelect, onClose }: any) => {
         });
     };
 
-    const addUserRoute = () => {
-        setAddUserRouteVisible(true);
+    const toggleDisplayUsersRoute = () => {
+        setDisplayUsersRoute(!displayUsersRoutes);
     }
 
     return (
         <Animated.View style={[styles.menu, { left: slideAnim }]}>
-            <Text style={styles.title}>Itinéraires enregistrés</Text>
-            {
-                userRoutes?.length > 0 && (
-                    <FlatList
-                        data={userRoutes}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
-                                <Text style={styles.routeName}>{item.name}</Text>
-                            </TouchableOpacity>
-                        )}
-                    />
-                )
-            }
-            {
-                userRoutes?.length <= 0 && isAuthenticated && (
-                    <Text>Aucune route créée</Text>
-                )
-            }
-
-            {
-                userRoutes?.length <= 0 && !isAuthenticated && (
-                    <Text>Veuillez vous connecter pour voir vos itinéraires</Text>
-                )
-            }
-
-            {
-                isAuthenticated && (
-                    <TouchableOpacity onPress={addUserRoute}>
-                        <View style={styles.item}>
-                            <Text>Ajouter</Text>
-                        </View>
+            {!displayUsersRoutes && (
+                <View>
+                    {userRoutes?.length <= 0 && isAuthenticated && (
+                        <TouchableOpacity style={[styles.buttonContainer, {marginTop: 40}]} onPress={toggleDisplayUsersRoute}>
+                            <Text style={styles.buttonContainerText}>Accéder aux itinéraires de l'utilisateur</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity style={[styles.buttonContainer, {marginTop: 40}]} onPress={() => setMultiplePoints(!multiplePoints)}>
+                        <Text style={styles.buttonContainerText}>{!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}</Text>
                     </TouchableOpacity>
-                )
-            }
 
-            <TouchableOpacity style={styles.closeButton} onPress={closeMenu}>
-                <Text style={styles.closeText}>Fermer</Text>
-            </TouchableOpacity>
-            <AddUserRoute
-                visible={addUserRouteVisible}
-                onClose={() => setAddUserRouteVisible(false)}
-                onSuccess={() => {
-                    // recharge les routes si besoin
-                }}
-            />
+                    <TouchableOpacity style={styles.closeButton} onPress={closeMenu}>
+                        <MaterialIcons color={'rgba(87,69,138, 1)'} size={30} name={'cancel'} />
+                    </TouchableOpacity>
+                    <View style={[styles.tollToggleButton,  {marginTop: 40}]}>
+                        <Text style={styles.tollText}>Éviter les péages</Text>
+                        <Switch
+                            trackColor={{ false: '#767577', true: '#81b0ff' }}
+                            thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
+                            ios_backgroundColor="#3e3e3e"
+                            onValueChange={() => setAvoidTolls(!avoidTolls)}
+                            value={avoidTolls}
+                        />
+                    </View>
+                </View>
+            )}
+            {displayUsersRoutes && (
+                <UserRoutesSideMenu
+                    userRoutes={userRoutes}
+                    onSelect={onSelect}
+                    onClose={() => setDisplayUsersRoute(false)}
+                />
+            )}
         </Animated.View>
     );
 };
@@ -101,11 +90,33 @@ const styles = StyleSheet.create({
         elevation: 10,
         zIndex: 100,
     },
-    title: { fontSize: 20, fontWeight: 'bold',marginTop: 30, marginBottom: 20 },
-    item: { paddingVertical: 12 },
-    routeName: { fontSize: 16 },
-    closeButton: { marginTop: 20 },
-    closeText: { color: 'blue' },
+    closeButton: { position: 'absolute', right: 0},
+    buttonContainer: {
+        zIndex: 110,
+        backgroundColor: 'rgba(87,69,138, 1)',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 30,
+    },
+    buttonContainerText: {
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 14,
+        textAlign: 'center'
+    },
+    tollToggleButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginLeft: 12,
+    },
+    tollText: {
+        fontSize: 14,
+        color: '#333',
+        marginRight: 4,
+    },
 });
 
 export default SideMenu;

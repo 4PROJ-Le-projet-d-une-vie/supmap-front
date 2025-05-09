@@ -12,7 +12,7 @@ const EditPassword = ({ visible, onClose, onSuccess }: any) => {
     const handleAddRoute = async () => {
         try {
             setLoading(true);
-            const response = await ApiService.patch('/user/me/update-password', {
+            const response = await ApiService.patch('/users/me/update-password', {
                 new: newPassword,
                 old: actualPassword
             });

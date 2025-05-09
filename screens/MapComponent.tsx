@@ -1,16 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-    ActivityIndicator,
-    Button,
-    Image,
-    Modal,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import {ActivityIndicator, Button, Image, Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import MapView, {LatLng, Marker, Polyline} from 'react-native-maps';
 import * as Location from 'expo-location';
 import RouteInstructions from '../components/RouteInstructions';
@@ -18,21 +7,23 @@ import {useAuth} from "@/contexts/AuthContext";
 import {Ionicons} from "@expo/vector-icons";
 import {useNavigation, useRoute} from '@react-navigation/native';
 import mapDesign from '../constants/mapDesign.json';
-import SideMenu from "@/components/SideMenu";
+import UserRoutesSideMenu from "@/components/UserRoutesSideMenu";
 import ApiService from "@/services/ApiService";
 import MultiPointInput from "@/components/MultiPointInput";
 import SearchResultsList from "@/components/SearchResultsList";
 import incidentsDesign from '@/constants/incidentsTypeDesign.json'
+import SideMenu from "@/components/SideMenu";
 
 interface Props {
     selectedRoute: any | null;
+    defaultSearchText: string | null;
 }
 
-const MapComponent: React.FC<Props> = ({selectedRoute}) => {
+const MapComponent: React.FC<Props> = ({selectedRoute, defaultSearchText}) => {
     const [initialLoaded, setInitialLoaded] = useState(false);
     const [location, setLocation] = useState(null);
     const [region, setRegion] = useState(null);
-    const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
+    const [polyline, setPolyline] = useState<LatLng[]>([]);
     const [instructions, setInstructions] = useState<any[]>([]);
     const [currentInstruction, setCurrentInstruction] = useState(0);
     const [currentInstructionPolyline, setCurrentInstructionPolyline] = useState<any[]>([]);
@@ -56,12 +47,13 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
 
     const ws = new WebSocket("ws://192.168.1.219:8082");
 
-    // setInterval(() => {
-    //     console.log(location)
-    //     ApiService.get('/incident', {lat: location.latitude, lon: location.longitude, radius: 500}).then(response => {
-    //         setIncidents(response);
-    //     })
-    // }, 300000)
+    setInterval(() => {
+        if (location && location.latitude && location.longitude) {
+            ApiService.get('/incidents', {lat: location.latitude, lon: location.longitude, radius: 500 }).then(response => {
+                setIncidents(response);
+            })
+        }
+    }, 300000)
 
     useEffect(() => {
         let subscription: any;
@@ -71,25 +63,23 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                 console.log('Permission refusée');
                 return;
             }
-            ApiService.get('/incident/types').then(response => {
-                setIncidentTypes(response);
-            })
+            if (route.params && route.params.defaultSearchText) setSearchText(route.params.defaultSearchText)
 
             subscription = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.High,
-                    timeInterval: 2000,
+                    timeInterval: 100,
                     distanceInterval: 2,
                 },
                 (loc) => {
                     setLocation(loc.coords);
+
                     setRegion({
                         latitude: loc.coords.latitude,
                         longitude: loc.coords.longitude,
                         latitudeDelta: 0.01,
                         longitudeDelta: 0.01,
                     });
-
                     mapRef.current?.animateToRegion({
                         latitude: loc.coords.latitude,
                         longitude: loc.coords.longitude,
@@ -97,8 +87,12 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         longitudeDelta: 0.005,
                     });
                     if(!initialLoaded) {
-                        ApiService.get('/incident', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
-                            setIncidents(response);
+                        ApiService.get('/incidents/types').then(response => {
+                            setIncidentTypes(response);
+                            ApiService.get('/incidents', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
+                                setIncidents(response);
+                                setInitialLoaded(true);
+                            })
                         })
                     }
                 }
@@ -112,10 +106,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
 
     useEffect(() => {
         if (route.params && route.params.selectedRoute) {
-            setRouteCoords(route.params.selectedRoute.completeShape);
+            setPolyline(route.params.selectedRoute.completeShape);
             setInstructions(route.params.selectedRoute.completeInstructions);
 
-            if (!location || !routeCoords || !instructions) return;
+            if (!location || !polyline || !instructions) return;
             ws.onopen = () => {
                 ws.send(location)
             }
@@ -129,7 +123,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
             };
             let minDistance = Infinity;
             let closestPointIndex = 0;
-            routeCoords.forEach((point: any, index: number) => {
+            polyline.forEach((point: any, index: number) => {
                 const distance = getDistance(userPosition, {
                     latitude: point.latitude,
                     longitude: point.longitude,
@@ -140,8 +134,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                 }
             });
             let remainingDistance = 0;
-            for (let i = closestPointIndex; i < routeCoords.length - 1; i++) {
-                remainingDistance += getDistance(routeCoords[i], routeCoords[i + 1]);
+            for (let i = closestPointIndex; i < polyline.length - 1; i++) {
+                remainingDistance += getDistance(polyline[i], polyline[i + 1]);
             }
             for (let i = 0; i < instructions.length; i++) {
                 const previousEnd = i === 0 ? -1 : instructions[i - 1].end_shape_index;
@@ -152,10 +146,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                     let newInstructionPolyline = [];
                     let newPassedPoints = []
                     for(let j = instructions[i+1].begin_shape_index; j < instructions[i+1].end_shape_index; j++) {
-                        newInstructionPolyline.push(routeCoords[j]);
+                        newInstructionPolyline.push(polyline[j]);
                     }
                     for(let j = 0; j < findClosestPolylineIndex(); j++) {
-                        newPassedPoints.push(routeCoords[j]);
+                        newPassedPoints.push(polyline[j]);
                     }
                     let remainingDuration = 0;
                     if (i !== -1) {
@@ -170,7 +164,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         minute: '2-digit',
                     });
 
-                    instructions[i+1]['distanceTo'] = getDistance(userPosition, routeCoords[instructions[i + 1].end_shape_index]);
+                    instructions[i+1]['distanceTo'] = getDistance(userPosition, polyline[instructions[i + 1].end_shape_index]);
                     instructions[i+1]['remainingDistance'] = remainingDistance;
                     instructions[i+1]['remainingDuration'] = remainingDuration;
                     instructions[i+1]['arrivalTime'] = formattedArrivalTime;
@@ -186,7 +180,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const findClosestPolylineIndex = () => {
         let minDistance = Infinity;
         let closestIndex = 0;
-        routeCoords.forEach((point: any, index: any) => {
+        polyline.forEach((point: any, index: any) => {
             const distance = getDistance(
                 { latitude: location.latitude, longitude: location.longitude },
                 { latitude: point.latitude, longitude: point.longitude }
@@ -215,7 +209,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         setLoading(true);
         try {
             ApiService.post('/route', request).then((response) => {
-                navigation.navigate('RouteChoice', {routes: response.data});
+                navigation.navigate('RouteChoice', {routes: response.data, searchText: searchText});
             })
         } catch (error) {
             console.error("Erreur lors de la récupération de l'itinéraire:", error);
@@ -234,7 +228,8 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
     const handleExitNavigation = () => {
         route.params.selectedRoute = null;
         setInstructions([]);
-        setRouteCoords([]);
+        setPolyline([]);
+        setPassedPoints([])
     }
 
     const fetchSearchResults = (text: string) => {
@@ -253,7 +248,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
         if (!menuVisible) {
             try {
                 let data = []
-                if (isAuthenticated) data = await ApiService.get('/user/me/routes');
+                if (isAuthenticated) data = await ApiService.get('/users/me/routes');
                 setUserRoutes(data);
             } catch (e) {
                 console.error('Erreur récupération itinéraires:', e);
@@ -273,7 +268,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
             lon: location.longitude,
             type_id: incidentType.id,
         }
-        ApiService.post('/incident', request).then(response => {
+        ApiService.post('/incidents', request).then(response => {
             setShowIncidentModal(false);
             setIncidents([...incidents, response]);
         })
@@ -299,6 +294,10 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                     userRoutes={userRoutes}
                     onSelect={handleSelectUserRoute}
                     onClose={() => setMenuVisible(false)}
+                    avoidTolls={avoidTolls}
+                    setAvoidTolls={setAvoidTolls}
+                    multiplePoints={multiplePoints}
+                    setMultiplePoints={setMultiplePoints}
                 />
             )}
 
@@ -339,20 +338,21 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                             <Polyline coordinates={currentInstructionPolyline} strokeWidth={4} strokeColor="white" zIndex={1}/>
                         )}
 
-                        {routeCoords.length > 0 && (
-                            <Polyline coordinates={routeCoords} strokeWidth={5} strokeColor="blue" />
+                        {polyline.length > 0 && (
+                            <Polyline coordinates={polyline} strokeWidth={5} strokeColor="blue" />
                         )}
                     </MapView>
 
                     {instructions.length === 0 && (
                         <TouchableOpacity style={styles.menuButton} onPress={toggleMenu}>
-                            <Ionicons name="menu" size={28} color="#6a3eb5" />
+                            <Ionicons name="menu" size={40} color="#6a3eb5" />
                         </TouchableOpacity>
                     )}
 
                     {instructions.length === 0 && (
                         <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
                             <Image
+                                resizeMethod={'resize'}
                                 source={
                                     isAuthenticated
                                         ? { uri: 'https://i.pravatar.cc/100' }
@@ -360,12 +360,6 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                                 }
                                 style={styles.avatar}
                             />
-                        </TouchableOpacity>
-                    )}
-
-                    {instructions.length === 0 && !menuVisible && !showResults && (
-                        <TouchableOpacity style={styles.toggleContainer} onPress={() => setMultiplePoints(!multiplePoints)}>
-                            <Text style={styles.toggleContainerText}>{!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}</Text>
                         </TouchableOpacity>
                     )}
 
@@ -387,16 +381,6 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                                         }}
                                         style={styles.searchInput}
                                     />
-                                    <View style={styles.tollToggleButton}>
-                                        <Text style={styles.tollText}>Éviter les péages</Text>
-                                        <Switch
-                                            trackColor={{ false: '#767577', true: '#81b0ff' }}
-                                            thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
-                                            ios_backgroundColor="#3e3e3e"
-                                            onValueChange={() => setAvoidTolls(!avoidTolls)}
-                                            value={avoidTolls}
-                                        />
-                                    </View>
                                 </View>
                             </View>
                         </View>
@@ -404,7 +388,7 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
 
                     {instructions.length === 0 && !menuVisible && multiplePoints && (
                         <View style={styles.searchContainer} pointerEvents="box-none">
-                            <MultiPointInput onSubmit={fetchRoute} avoidTolls={avoidTolls} setAvoidTolls={setAvoidTolls} />
+                            <MultiPointInput onSubmit={fetchRoute} onCancel={setMultiplePoints} avoidTolls={avoidTolls} setAvoidTolls={setAvoidTolls} />
                         </View>
                     )}
                 </>
@@ -418,14 +402,14 @@ const MapComponent: React.FC<Props> = ({selectedRoute}) => {
                         instruction={currentInstruction || null}
                     />
                     <TouchableOpacity style={styles.cancelNavButton} onPress={handleExitNavigation}>
-                        <Ionicons name="exit" size={28} color="#6a3eb5" />
+                        <Ionicons style={{top: 5, left: 10}} name="exit" size={50} color="#6a3eb5" />
                     </TouchableOpacity>
                 </>
             )}
 
             {instructions.length > 0  && (
                 <TouchableOpacity style={styles.incidentButton} onPress={() => setShowIncidentModal(true)}>
-                    <Image style={{resizeMode: 'stretch', height: 40, width: 40, bottom: 9, right: 7}} source={require('../assets/images/incidentAddButton.png')}/>
+                    <Image style={{resizeMode: 'stretch', height: 40, width: 40, top: 7, left: 7}} source={require('../assets/images/incidentAddButton.png')}/>
                 </TouchableOpacity>
             )}
 
@@ -450,11 +434,10 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     map: { width: '100%', height: '100%' },
     loader: { position: 'absolute', top: '50%', alignSelf: 'center' },
-
     menuButton: {
         position: 'absolute',
-        top: 40,
-        left: 20,
+        top: 10,
+        left: 10,
         backgroundColor: 'white',
         borderRadius: 20,
         padding: 10,
@@ -462,28 +445,16 @@ const styles = StyleSheet.create({
     },
     profileButton: {
         position: 'absolute',
-        top: 40,
-        right: 20,
+        top: 10,
+        right: 10,
         zIndex: 2,
     },
     avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 60,
+        height: 60,
+        borderRadius: 50,
         borderWidth: 2,
         borderColor: 'white',
-    },
-    toggleContainer: {
-        position: 'absolute',
-        bottom: 100,
-        left: 35,
-        right: 35,
-        zIndex: 110,
-        backgroundColor: '#004baf',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 10,
-        alignItems: 'center',
     },
     searchContainer: {
         position: 'absolute',
@@ -537,22 +508,8 @@ const styles = StyleSheet.create({
         zIndex: 2,
         borderRadius: 20,
         padding: 10,
-    },
-    toggleContainerText: {
-        color: 'white',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    tollToggleButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginLeft: 12,
-    },
-    tollText: {
-        fontSize: 14,
-        color: '#333',
-        marginRight: 4,
+        height: 80,
+        width: 80,
     },
     incidentButton: {
         position: 'absolute',
@@ -562,22 +519,20 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 12,
         borderRadius: 20,
-        height: 50,
-        width: 50,
+        height: 80,
+        width: 80,
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         backgroundColor: 'rgba(0,0,0,0.5)',
     },
-
     modalContent: {
         backgroundColor: 'white',
         padding: 20,
         margin: 20,
         borderRadius: 12,
     },
-
     modalTitle: {
         fontWeight: '700',
         fontSize: 16,

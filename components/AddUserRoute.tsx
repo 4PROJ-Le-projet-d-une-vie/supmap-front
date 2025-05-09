@@ -15,7 +15,7 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
         try {
             setLoading(true);
             console.log(destination)
-            await ApiService.post('/user/me/routes', {
+            await ApiService.post('/users/me/routes', {
                 name: name,
                 route: [{
                     lat: destination[0],
