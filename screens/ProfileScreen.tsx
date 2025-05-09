@@ -3,7 +3,7 @@ import {
     View, Text, TextInput, Button, Image, StyleSheet, TouchableOpacity, Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import {clearTokens, saveTokens} from '@/services/AuthStorage';
+import {clearTokens, getRefreshToken, saveTokens} from '@/services/AuthStorage';
 import ApiService from '@/services/ApiService';
 import EditPassword from "@/components/EditPassword";
 import {Ionicons} from "@expo/vector-icons";
@@ -61,8 +61,10 @@ const ProfileScreen = () => {
 
     const handleLogout = async () =>{
         logout()
-        await clearTokens()
-        navigation.navigate('Home');
+        ApiService.post('/logout', {token: getRefreshToken()}).then(async () => {
+            await clearTokens()
+            navigation.navigate('Home');
+        })
     }
 
     useEffect(() => {
