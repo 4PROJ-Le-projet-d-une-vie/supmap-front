@@ -87,6 +87,7 @@ const MapComponent: React.FC<Props> = ({}) => {
 
                 ws.current.onmessage = (e) => {
                     if(e.type == "incident") handleIncidentWebsocket(e.data)
+                    if(e.type == "route") handleRouteWebsocket(e.data)
                 };
 
                 ws.current.onerror = (e) => {
@@ -366,7 +367,21 @@ const MapComponent: React.FC<Props> = ({}) => {
     }
 
     const handleIncidentWebsocket = (data: any) => {
-        setApproachingIncident(data);
+        if(data.action == 'create' || data.action == 'certified') setIncidents([...incidents, data.incident]);
+    }
+
+    const handleRouteWebsocket = (data: any) => {
+        if(route.params && route.params.selectedRoute) {
+            let completeShape: any[] = [];
+            let completeInstructions: any[] = []
+            for(let leg of data.route) {
+                completeShape = completeShape.concat(leg.shape);
+                completeInstructions = completeInstructions.concat(leg.maneuvers);
+            }
+            data.route.completeShape = completeShape;
+            data.route.completeInstructions = completeInstructions;
+            route.params.selectedRoute = data.route;
+        }
     }
 
     const upvoteIncident = () => {

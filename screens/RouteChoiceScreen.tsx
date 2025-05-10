@@ -6,8 +6,8 @@ const RouteChoiceScreen = ({ route, navigation }) => {
     const { routes, searchText } = route.params;
 
     const handleSelect = (selectedRoute) => {
-        let completeShape = [];
-        let completeInstructions = []
+        let completeShape: any[] = [];
+        let completeInstructions: any[] = []
         for(let leg of selectedRoute.legs) {
             completeShape = completeShape.concat(leg.shape);
             completeInstructions = completeInstructions.concat(leg.maneuvers);
