@@ -9,6 +9,7 @@ import EditPassword from "@/components/EditPassword";
 import {Ionicons} from "@expo/vector-icons";
 import {useAuth} from "@/contexts/AuthContext";
 import {useNavigation} from "@react-navigation/native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const ProfileScreen = () => {
     const { logout } = useAuth();
@@ -59,12 +60,16 @@ const ProfileScreen = () => {
         setEditPassword(!editPassword);
     }
 
-    const handleLogout = async () =>{
+    const handleLogout = async () => {
         logout()
-        ApiService.post('/logout', {token: getRefreshToken()}).then(async () => {
+        ApiService.post('/logout', {token: await getRefreshToken()}).then(async () => {
             await clearTokens()
             navigation.navigate('Home');
         })
+    }
+
+    const goBack = async () => {
+        navigation.navigate('Home')
     }
 
     useEffect(() => {
@@ -73,16 +78,18 @@ const ProfileScreen = () => {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={pickImage}>
+            <TouchableOpacity onPress={pickImage} disabled={true}>
                 <Image
                     source={profile.avatar ? { uri: profile.avatar } : require('@/assets/images/default-avatar.jpg')}
                     style={styles.avatar}
                 />
-                <Text style={styles.changePhoto}>Changer la photo</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Ionicons name="exit" size={28} color="#6a3eb5" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.goBackButton} onPress={goBack}>
+                <MaterialIcons name="arrow-back" size={28} color="#6a3eb5" />
             </TouchableOpacity>
 
             <Text style={styles.label}>Email</Text>
@@ -128,6 +135,7 @@ const styles = StyleSheet.create({
     input: { borderBottomWidth: 1, borderBottomColor: '#ccc', padding: 5 },
     email: { paddingVertical: 10, color: '#555' },
     logoutButton: { position: "absolute", top: 20, right: 20 },
+    goBackButton: { position: "absolute", top: 20, left: 20 },
 });
 
 export default ProfileScreen;

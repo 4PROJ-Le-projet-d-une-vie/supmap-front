@@ -43,7 +43,7 @@ const SideMenu = ({ userRoutes, onSelect, onClose, avoidTolls, setAvoidTolls, mu
                         <MaterialIcons color={'rgba(87,69,138, 1)'} size={30} name={'cancel'} />
                     </TouchableOpacity>
                     <View style={{top: 100}}>
-                        {userRoutes?.length <= 0  && isAuthenticated &&(
+                        {isAuthenticated &&(
                             <TouchableOpacity style={[styles.buttonContainer, {marginBottom: 20}]} onPress={toggleDisplayUsersRoute}>
                                 <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
                                     <Text style={styles.buttonContainerText}>Mes itinéraires</Text>
@@ -78,6 +78,7 @@ const SideMenu = ({ userRoutes, onSelect, onClose, avoidTolls, setAvoidTolls, mu
                     userRoutes={userRoutes}
                     onSelect={onSelect}
                     onClose={() => setDisplayUsersRoute(false)}
+                    onCloseAll={onClose}
                 />
             )}
         </Animated.View>

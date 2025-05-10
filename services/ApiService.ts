@@ -12,7 +12,7 @@ api.interceptors.request.use(
     async (config) => {
         const token = await getAccessToken();
         if (token) {
-            config.headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDY2OTY5NzksImlhdCI6MTc0NjYxMDU3OSwicm9sZSI6IlJPTEVfVVNFUiIsInVzZXJJZCI6MX0.yxJ1BE_BcabWmj4cC_CZhxcyKrqPYegd5HemQrvGBt0`;
+            config.headers.Authorization = `Bearer ` + token;
         }
         return config;
     },

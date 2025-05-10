@@ -75,7 +75,7 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
                     )}
 
                     <TouchableOpacity style={[styles.buttons, {marginBottom: 10, backgroundColor: 'rgba(87,69,138, 1)'}]} onPress={handleAddRoute} disabled={loading || destination === null}>
-                        <Text style={[styles.buttonsText, {fontSize: 18}]} disabled={loading}> Ajouter </Text>
+                        <Text style={styles.buttonsText} disabled={loading}> Ajouter </Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.buttons, {marginBottom: 10, backgroundColor: 'grey'}]} onPress={onClose}>
                         <Text style={styles.buttonsText}> Annuler </Text>

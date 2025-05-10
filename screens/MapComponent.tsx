@@ -121,10 +121,7 @@ const MapComponent: React.FC<Props> = ({}) => {
 
     useEffect(() => {
         if (route.params && route.params.scannedRoute) {
-            ApiService.post('/users/me/routes', {
-                name: route.params.scannedRoute.name,
-                route: route.params.scannedRoute.locations,
-            }).then(() => {
+            ApiService.post('/users/me/routes', route.params.scannedRoute).then(() => {
                 ApiService.get('/users/me/routes').then(response => {
                     setUserRoutes(response);
                 })
