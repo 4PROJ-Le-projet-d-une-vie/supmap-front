@@ -52,7 +52,7 @@ const LoginScreen = () => {
             />
             <Button title="Se connecter" color={'#57458A'} onPress={handleLogin} />
             <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
-                Pas encore de compte ? Inscris-toi
+                Pas encore de compte ? Inscrivez-vous
             </Text>
         </View>
     );

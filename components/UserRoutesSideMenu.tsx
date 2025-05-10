@@ -122,7 +122,10 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
             </TouchableOpacity>
             <AddUserRoute
                 visible={addUserRouteVisible}
-                onClose={() => setAddUserRouteVisible(false)}
+                onClose={() => {
+                    setAddUserRouteVisible(false);
+                    onCloseAll()
+                }}
                 onSuccess={() => {}}
             />
         </Animated.View>

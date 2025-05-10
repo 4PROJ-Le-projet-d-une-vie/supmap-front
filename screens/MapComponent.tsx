@@ -81,21 +81,9 @@ const MapComponent: React.FC<Props> = ({}) => {
             getItemAsync('webSocketUid').then(uuid => {
                 ws.current = new WebSocket(API_BASE_URL + "/navigation/ws?session_id=" + uuid );
 
-                ws.current.onopen = () => {
-                    console.log("WebSocket connecté");
-                };
-
                 ws.current.onmessage = (e) => {
                     if(e.type == "incident") handleIncidentWebsocket(e.data)
                     if(e.type == "route") handleRouteWebsocket(e.data)
-                };
-
-                ws.current.onerror = (e) => {
-                    console.error("WebSocket erreur:", e.message);
-                };
-
-                ws.current.onclose = () => {
-                    console.log("WebSocket fermé");
                 };
 
                 return () => {

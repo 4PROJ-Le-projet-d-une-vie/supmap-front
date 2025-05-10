@@ -70,6 +70,10 @@ export default function CameraScreen() {
                 <TouchableOpacity onPress={goBack} style={styles.goBackButton}>
                     <MaterialIcons name={'arrow-back'} size={30} color={'rgba(87,69,138, 1)'}/>
                 </TouchableOpacity>
+                <View style={{position: 'absolute', top: 80, left: '18%', height: 50, width: 250, backgroundColor: 'white', borderRadius: 20, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text>Scannez le QR code disponible</Text>
+                    <Text> sur le site web</Text>
+                </View>
                 {scanned && (
                     <View style={styles.scannedData}>
                         <Text>QR Code Scanné: {qrData}</Text>

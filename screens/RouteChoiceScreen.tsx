@@ -23,7 +23,7 @@ const RouteChoiceScreen = ({ route, navigation }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Choisis ton itinéraire</Text>
+            <Text style={styles.title}>Choisissez votre itinéraire</Text>
             <FlatList
                 data={routes}
                 keyExtractor={(_, index) => index.toString()}

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Modal, View, TextInput, Button, StyleSheet, Text, Alert} from 'react-native';
+import {Modal, View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity} from 'react-native';
 import ApiService from '@/services/ApiService';
 import { saveTokens } from '@/services/AuthStorage';
 
@@ -9,7 +9,7 @@ const EditPassword = ({ visible, onClose, onSuccess }: any) => {
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
 
-    const handleAddRoute = async () => {
+    const handleConfirmEdit = async () => {
         try {
             setLoading(true);
             const response = await ApiService.patch('/users/me/update-password', {
@@ -45,8 +45,12 @@ const EditPassword = ({ visible, onClose, onSuccess }: any) => {
                         )
                     }
 
-                    <Button title="Ajouter" onPress={handleAddRoute} disabled={loading || (newPassword != newPasswordConfirm)} />
-                    <Button title="Annuler" color="gray" onPress={onClose} />
+                    <TouchableOpacity  style={[styles.buttons, {marginBottom: 10, backgroundColor: 'rgba(87,69,138, 1)'}]} onPress={handleConfirmEdit} disabled={loading || (newPassword != newPasswordConfirm)}>
+                        <Text style={styles.buttonsText} disabled={loading}> Confirmer </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.buttons, {marginBottom: 10, backgroundColor: 'grey'}]} onPress={onClose}>
+                        <Text style={styles.buttonsText}> Annuler </Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         </Modal>
@@ -58,7 +62,18 @@ const styles = StyleSheet.create({
     content: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: '85%' },
     label: { fontWeight: 'bold', marginBottom: 5 },
     input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, marginBottom: 10, paddingHorizontal: 10, height: 40 },
-    differentPasswords: {color: 'red'}
+    differentPasswords: {color: 'red'},
+    buttons: {
+        borderRadius: 10,
+        color: 'white',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+    },
+    buttonsText: {
+        color: 'white',
+        fontWeight: 'bold'
+    }
 });
 
 export default EditPassword;
