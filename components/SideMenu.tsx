@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, Switch} from 'react-native';
-import AddUserRoute from "@/components/AddUserRoute";
+import {View, Text, TouchableOpacity, StyleSheet, Animated, Dimensions, Switch, Image} from 'react-native';
 import {useAuth} from "@/contexts/AuthContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import UserRoutesSideMenu from "@/components/UserRoutesSideMenu";
@@ -37,29 +36,40 @@ const SideMenu = ({ userRoutes, onSelect, onClose, avoidTolls, setAvoidTolls, mu
 
     return (
         <Animated.View style={[styles.menu, { left: slideAnim }]}>
+            <Image source={require('../assets/images/icon.png')} style={{width: 100, position: 'absolute', top: -310, left: 10}} resizeMode={'contain'} />
             {!displayUsersRoutes && (
                 <View>
-                    {userRoutes?.length <= 0 && isAuthenticated && (
-                        <TouchableOpacity style={[styles.buttonContainer, {marginTop: 40}]} onPress={toggleDisplayUsersRoute}>
-                            <Text style={styles.buttonContainerText}>Accéder aux itinéraires de l'utilisateur</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity style={[styles.buttonContainer, {marginTop: 40}]} onPress={() => setMultiplePoints(!multiplePoints)}>
-                        <Text style={styles.buttonContainerText}>{!multiplePoints ? 'Passer en mode multi-points' : 'Mode destination unique'}</Text>
-                    </TouchableOpacity>
-
                     <TouchableOpacity style={styles.closeButton} onPress={closeMenu}>
                         <MaterialIcons color={'rgba(87,69,138, 1)'} size={30} name={'cancel'} />
                     </TouchableOpacity>
-                    <View style={[styles.tollToggleButton,  {marginTop: 40}]}>
-                        <Text style={styles.tollText}>Éviter les péages</Text>
-                        <Switch
-                            trackColor={{ false: '#767577', true: '#81b0ff' }}
-                            thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
-                            ios_backgroundColor="#3e3e3e"
-                            onValueChange={() => setAvoidTolls(!avoidTolls)}
-                            value={avoidTolls}
-                        />
+                    <View style={{top: 100}}>
+                        {userRoutes?.length <= 0  && isAuthenticated &&(
+                            <TouchableOpacity style={[styles.buttonContainer, {marginBottom: 20}]} onPress={toggleDisplayUsersRoute}>
+                                <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                                    <Text style={styles.buttonContainerText}>Mes itinéraires</Text>
+                                    <View style={{width: 50}}/>
+                                    <Image source={require('../assets/images/userRoutes.png')} style={{width: 35, height: 35}} resizeMode={'contain'}/>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity style={styles.buttonContainer} onPress={() => {setMultiplePoints(!multiplePoints); closeMenu()}}>
+                            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+                                <Text style={styles.buttonContainerText}>{!multiplePoints ? 'Ajouter étapes' : 'Étape unique'}</Text>
+                                <View style={{width: 50}}/>
+                                <Image source={require('../assets/images/multipinIcon.png')} style={{width: 35, height: 35}} resizeMode={'contain'}/>
+                            </View>
+                        </TouchableOpacity>
+
+                        <View style={[styles.tollToggleButton,  {marginTop: 15}]}>
+                            <Text style={styles.tollText}>Éviter les péages</Text>
+                            <Switch
+                                trackColor={{ false: '#767577', true: '#81b0ff' }}
+                                thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
+                                ios_backgroundColor="#3e3e3e"
+                                onValueChange={() => setAvoidTolls(!avoidTolls)}
+                                value={avoidTolls}
+                            />
+                        </View>
                     </View>
                 </View>
             )}
@@ -98,12 +108,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 10,
         alignItems: 'center',
-        marginTop: 30,
     },
     buttonContainerText: {
         color: 'white',
         fontWeight: '700',
-        fontSize: 14,
+        fontSize: 17,
         textAlign: 'center'
     },
     tollToggleButton: {

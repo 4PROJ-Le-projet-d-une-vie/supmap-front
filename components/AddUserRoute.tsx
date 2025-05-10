@@ -4,7 +4,7 @@ import ApiService from '@/services/ApiService';
 
 const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
     const [name, setName] = useState('');
-    const [destination, setDestination] = useState<any>([]);
+    const [destination, setDestination] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [searchDestinationText, setSearchDestinationText] = useState('');
     const [searchResults, setSearchResults] = useState<any>([]);
@@ -34,7 +34,6 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
         setShowResults(false);
         setSearchDestinationText(item.name)
         setDestination([item.lat, item.lon])
-        console.log(destination);
     }
 
     const fetchSearchResults = () => {
@@ -75,8 +74,12 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
                         </View>
                     )}
 
-                    <Button title="Ajouter" onPress={handleAddRoute} disabled={loading} />
-                    <Button title="Annuler" color="gray" onPress={onClose} />
+                    <TouchableOpacity style={[styles.buttons, {marginBottom: 10, backgroundColor: 'rgba(87,69,138, 1)'}]} onPress={handleAddRoute} disabled={loading || destination === null}>
+                        <Text style={[styles.buttonsText, {fontSize: 18}]} disabled={loading}> Ajouter </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.buttons, {marginBottom: 10, backgroundColor: 'grey'}]} onPress={onClose}>
+                        <Text style={styles.buttonsText}> Annuler </Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         </Modal>
@@ -108,6 +111,17 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
     },
+    buttons: {
+        borderRadius: 10,
+        color: 'white',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+    },
+    buttonsText: {
+        color: 'white',
+        fontWeight: 'bold'
+    }
 });
 
 export default AddUserRoute;

@@ -24,10 +24,14 @@ import SearchResultsList from "@/components/SearchResultsList";
 import incidentsDesign from '@/constants/incidentsTypeDesign.json'
 import SideMenu from "@/components/SideMenu";
 import {findClosestPolylineIndex, getDistance} from "@/services/RealtimeNavigationService";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import QrCodeScanner from "@/screens/QrCodeScanner";
+import CameraScreen from "@/screens/QrCodeScanner";
 
 interface Props {
     selectedRoute: any | null;
     defaultSearchText: string | null;
+    scannedRoute: any[] | null;
 }
 
 const MapComponent: React.FC<Props> = ({}) => {
@@ -116,6 +120,16 @@ const MapComponent: React.FC<Props> = ({}) => {
     }, []);
 
     useEffect(() => {
+        if (route.params && route.params.scannedRoute) {
+            ApiService.post('/users/me/routes', {
+                name: route.params.scannedRoute.name,
+                route: route.params.scannedRoute.locations,
+            }).then(() => {
+                ApiService.get('/users/me/routes').then(response => {
+                    setUserRoutes(response);
+                })
+            });
+        }
         if (route.params && route.params.selectedRoute) {
             setPolyline(route.params.selectedRoute.completeShape);
             setInstructions(route.params.selectedRoute.completeInstructions);
@@ -265,6 +279,10 @@ const MapComponent: React.FC<Props> = ({}) => {
         })
     }
 
+    const openQrCodeScanner = () => {
+        navigation.navigate('Camera')
+    }
+
     return (
         <View style={styles.container}>
             {menuVisible && (
@@ -335,6 +353,12 @@ const MapComponent: React.FC<Props> = ({}) => {
                                 }
                                 style={styles.avatar}
                             />
+                        </TouchableOpacity>
+                    )}
+
+                    {instructions.length === 0 && isAuthenticated &&(
+                        <TouchableOpacity style={styles.qrCodeScannerButton} onPress={openQrCodeScanner}>
+                            <MaterialIcons name={'qr-code'} size={60} color="#6a3eb5"/>
                         </TouchableOpacity>
                     )}
 
@@ -513,6 +537,14 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
+    qrCodeScannerButton: {
+        position: 'absolute',
+        top: 80,
+        left: 10,
+        zIndex: 2,
+        backgroundColor: 'white',
+        borderRadius: 12,
+    }
 });
 
 export default MapComponent;

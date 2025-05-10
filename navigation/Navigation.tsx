@@ -7,6 +7,7 @@ import LoginScreen from '@/screens/LoginScreen';
 import RegisterScreen from '@/screens/RegisterScreen';
 import RouteChoiceScreen from "@/screens/RouteChoiceScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
+import CameraScreen from "@/screens/QrCodeScanner";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ const Navigation = () => {
             <Stack.Screen name="Register" component={RegisterScreen} />
             <Stack.Screen name="RouteChoice" component={RouteChoiceScreen} />
             <Stack.Screen name="UserProfile" component={ProfileScreen} />
+            <Stack.Screen name="Camera" component={CameraScreen} />
         </Stack.Navigator>
     );
 };
