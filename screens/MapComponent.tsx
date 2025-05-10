@@ -1,8 +1,19 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Button, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {
+    ActivityIndicator,
+    Alert,
+    Button,
+    Image,
+    Modal,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import MapView, {LatLng, Marker, Polyline} from 'react-native-maps';
 import * as Location from 'expo-location';
-import RouteInstructions from '../components/RouteInstructions';
+import RouteInstructions from '@/components/RouteInstructions';
 import {useAuth} from "@/contexts/AuthContext";
 import {Ionicons} from "@expo/vector-icons";
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -12,6 +23,7 @@ import MultiPointInput from "@/components/MultiPointInput";
 import SearchResultsList from "@/components/SearchResultsList";
 import incidentsDesign from '@/constants/incidentsTypeDesign.json'
 import SideMenu from "@/components/SideMenu";
+import {findClosestPolylineIndex, getDistance} from "@/services/RealtimeNavigationService";
 
 interface Props {
     selectedRoute: any | null;
@@ -138,16 +150,13 @@ const MapComponent: React.FC<Props> = ({}) => {
             }
             for (let i = 0; i < instructions.length; i++) {
                 const previousEnd = i === 0 ? -1 : instructions[i - 1].end_shape_index;
-                if (
-                    closestPointIndex > previousEnd &&
-                    closestPointIndex <= instructions[i].end_shape_index
-                ) {
+                if (closestPointIndex > previousEnd && closestPointIndex <= instructions[i].end_shape_index) {
                     let newInstructionPolyline = [];
                     let newPassedPoints = []
                     for(let j = instructions[i+1].begin_shape_index; j < instructions[i+1].end_shape_index; j++) {
                         newInstructionPolyline.push(polyline[j]);
                     }
-                    for(let j = 0; j < findClosestPolylineIndex(); j++) {
+                    for(let j = 0; j < findClosestPolylineIndex(polyline, location); j++) {
                         newPassedPoints.push(polyline[j]);
                     }
                     let remainingDuration = 0;
@@ -176,23 +185,6 @@ const MapComponent: React.FC<Props> = ({}) => {
         }
     }, [location]);
 
-    const findClosestPolylineIndex = () => {
-        let minDistance = Infinity;
-        let closestIndex = 0;
-        polyline.forEach((point: any, index: any) => {
-            const distance = getDistance(
-                { latitude: location.latitude, longitude: location.longitude },
-                { latitude: point.latitude, longitude: point.longitude }
-            );
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestIndex = index;
-            }
-        });
-
-        return closestIndex;
-    }
-
     const fetchRoute = async (destination: any, displayName: string|null) => {
         if (!location) return;
         if (displayName) setSearchText(displayName)
@@ -211,7 +203,7 @@ const MapComponent: React.FC<Props> = ({}) => {
                 navigation.navigate('RouteChoice', {routes: response.data, searchText: searchText});
             })
         } catch (error) {
-            console.error("Erreur lors de la récupération de l'itinéraire:", error);
+            Alert.alert("Erreur lors de la récupération de l'itinéraire", error);
         }
         setLoading(false);
     };
@@ -273,18 +265,6 @@ const MapComponent: React.FC<Props> = ({}) => {
         })
     }
 
-    function getDistance(a: LatLng, b: LatLng): number {
-        const R = 6371e3;
-        const phi1 = a.latitude * Math.PI / 180;
-        const phi2 = b.latitude * Math.PI / 180;
-        const deltaPhi = (b.latitude - a.latitude) * Math.PI / 180;
-        const deltaLambda = (b.longitude - a.longitude) * Math.PI / 180;
-
-        const x = deltaLambda * Math.cos((phi1 + phi2) / 2);
-        const y = deltaPhi;
-        return Math.sqrt(x * x + y * y) * R;
-    }
-
     return (
         <View style={styles.container}>
             {menuVisible && (
@@ -309,12 +289,9 @@ const MapComponent: React.FC<Props> = ({}) => {
                         showsUserLocation
                     >
                         {route.params && route.params.selectedRoute && route.params.selectedRoute.locations && route.params.selectedRoute.locations.map((location: any, index: number) => (
-                            <Marker
-                                key={index}
-                                coordinate={{ latitude: location.lat, longitude: location.lon }}
-                                title={location.name ? location.name : `Étape ${index + 1}`}
-                                pinColor={index === 0 ? 'green' : index === route.params.selectedRoute.locations.length - 1 ? 'red' : 'blue'}
-                            />
+                            <Marker key={index} coordinate={{ latitude: location.lat, longitude: location.lon }} title={location.name ? location.name : `Étape ${index + 1}`}>
+                                <Image source={index === 0 ? require('../assets/images/start_marker.png') : index === route.params.selectedRoute.locations.length -1 ? require('../assets/images/end_marker.png') : require('../assets/images/mid_marker.png')} style={{width: 38, height: 38}}/>
+                            </Marker>
                         ))}
 
                         {incidents.map((incident: any) => (
