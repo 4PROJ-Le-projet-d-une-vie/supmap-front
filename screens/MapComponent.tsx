@@ -25,9 +25,11 @@ import incidentsDesign from '@/constants/incidentsTypeDesign.json'
 import SideMenu from "@/components/SideMenu";
 import {findClosestPolylineIndex, getDistance} from "@/services/RealtimeNavigationService";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import QrCodeScanner from "@/screens/QrCodeScanner";
-import CameraScreen from "@/screens/QrCodeScanner";
-
+import {uid} from 'uid';
+import {getItemAsync, setItemAsync} from "expo-secure-store";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+import { jwtDecode } from "jwt-decode";
+import {getAccessToken} from "@/services/AuthStorage";
 interface Props {
     selectedRoute: any | null;
     defaultSearchText: string | null;
@@ -59,16 +61,71 @@ const MapComponent: React.FC<Props> = ({}) => {
     const [incidentTypes, setIncidentTypes] = useState<any[]>([]);
     const [showIncidentModal, setShowIncidentModal] = useState(false);
     const [incidents, setIncidents] = useState<any[]>([]);
+    const [approachingIncident, setApproachingIncident] = useState<any>(null)
+    const [alreadyVotedIncidentsIds, setAlreadyVotedIncidentsIds] = useState<any[]>([]);
+    let userId = useRef<number>(null);
+    const ws = useRef<WebSocket | null>(null);
 
-    const ws = new WebSocket("ws://192.168.1.219:8082");
+
+    const setUuid = async () => {
+        await setItemAsync('webSocketUid', uid(32))
+    }
+    useEffect(() => {
+        getAccessToken().then(response => {
+            userId = jwtDecode(response.userId)
+        })
+    }, []);
+
+    useEffect(() => {
+        setUuid().then(() => {
+            getItemAsync('webSocketUid').then(uuid => {
+                ws.current = new WebSocket(API_BASE_URL + "/navigation/ws?session_id=" + uuid );
+
+                ws.current.onopen = () => {
+                    console.log("WebSocket connecté");
+                };
+
+                ws.current.onmessage = (e) => {
+                    if(e.type == "incident") handleIncidentWebsocket(e.data)
+                };
+
+                ws.current.onerror = (e) => {
+                    console.error("WebSocket erreur:", e.message);
+                };
+
+                ws.current.onclose = () => {
+                    console.log("WebSocket fermé");
+                };
+
+                return () => {
+                    ws.current?.close();
+                };
+            })
+        })
+    }, []);
+
 
     setInterval(() => {
-        if (location && location.latitude && location.longitude) {
+        if (location && location.latitude && location.longitude && ws.current?.readyState == WebSocket.OPEN) {
             ApiService.get('/incidents', {lat: location.latitude, lon: location.longitude, radius: 500 }).then(response => {
                 setIncidents(response);
             })
         }
     }, 300000)
+
+    setInterval(() => {
+        if (ws.current?.readyState == WebSocket.OPEN && route && route.params && route.params.selectedRoute && location && location.latitude && location.longitude) {
+            let message = {
+                type: "position",
+                data: {
+                    "lat": location.latitude,
+                    "lon": location.longitude,
+                    "timestamp": Date.now()
+                }
+            }
+            ws.current.send(JSON.stringify(message));
+        }
+    }, 3000)
 
     useEffect(() => {
         let subscription: any;
@@ -106,6 +163,28 @@ const MapComponent: React.FC<Props> = ({}) => {
                             setIncidentTypes(response);
                             ApiService.get('/incidents', {lat: loc.coords.latitude, lon: loc.coords.longitude, radius: 500}).then(response => {
                                 setIncidents(response);
+                                if(!initialLoaded && route.params && route.params.selectedRoute && ws.current?.readyState == WebSocket.OPEN) {
+                                    getItemAsync('webSocketUid').then(response => {
+                                        const now = new Date();
+                                        let message = {
+                                            type: 'init',
+                                            data: {
+                                                session_id: response,
+                                                last_position: {
+                                                    lat: loc.coords.latitude,
+                                                    lon: loc.coords.longitude,
+                                                    timestamp: now.toISOString()
+                                                },
+                                                route: {
+                                                    polyline: polyline,
+                                                    locations: []
+                                                },
+                                                updated_at: now.toISOString()
+                                            }
+                                        }
+                                        ws.current.send(JSON.stringify(message));
+                                    })
+                                }
                                 setInitialLoaded(true);
                             })
                         })
@@ -133,13 +212,6 @@ const MapComponent: React.FC<Props> = ({}) => {
             setInstructions(route.params.selectedRoute.completeInstructions);
 
             if (!location || !polyline || !instructions) return;
-            ws.onopen = () => {
-                ws.send(location)
-            }
-
-            ws.onmessage = (response) => {
-                console.log(response);
-            }
             const userPosition = {
                 latitude: location.latitude,
                 longitude: location.longitude,
@@ -192,6 +264,18 @@ const MapComponent: React.FC<Props> = ({}) => {
                     setPassedPoints(newPassedPoints);
                     setCurrentInstruction(instructions[i+1]);
                     break;
+                }
+            }
+
+            for(let i = 0; i < incidents.length; i++) {
+                let incidentLatLon = {
+                    latitude: incidents[i].lat,
+                    longitude: incidents[i].lon,
+                }
+
+                if(getDistance(userPosition, incidentLatLon) < 100 && !alreadyVotedIncidentsIds.includes(incidents[i].id)) {
+                    setAlreadyVotedIncidentsIds([...incidents, incidents[i].id]);
+                    setApproachingIncident(incidents[i])
                 }
             }
         }
@@ -262,7 +346,7 @@ const MapComponent: React.FC<Props> = ({}) => {
 
     const handleSelectUserRoute = (route: any) => {
         setMenuVisible(false);
-        fetchRoute(route.destination);
+        fetchRoute(route.route, null);
     };
 
     const reportIncident = (incidentType: any) => {
@@ -279,6 +363,28 @@ const MapComponent: React.FC<Props> = ({}) => {
 
     const openQrCodeScanner = () => {
         navigation.navigate('Camera')
+    }
+
+    const handleIncidentWebsocket = (data: any) => {
+        setApproachingIncident(data);
+    }
+
+    const upvoteIncident = () => {
+        ApiService.post('/incidents/interactions', {incident_id: approachingIncident.id, is_still_present: true}).finally(() => updateIncidents());
+    }
+    const downvoteIncident = () => {
+        ApiService.post('/incidents/interactions', {incident_id: approachingIncident.id, is_still_present: false}).finally(() => updateIncidents());
+    }
+
+    const updateIncidents = () => {
+        let updatedIncidents = incidents;
+        for (let i = 0; i < updatedIncidents.length; i++) {
+            if(updatedIncidents[i].id == approachingIncident.id) {
+                updatedIncidents[i].alreadyVoted = true;
+                break;
+            }
+        }
+        setApproachingIncident(null);
     }
 
     return (
@@ -402,7 +508,7 @@ const MapComponent: React.FC<Props> = ({}) => {
                 </>
             )}
 
-            {instructions.length > 0  && (
+            {instructions.length > 0  && isAuthenticated && (
                 <TouchableOpacity style={styles.incidentButton} onPress={() => setShowIncidentModal(true)}>
                     <Image style={{resizeMode: 'stretch', height: 40, width: 40, top: 7, left: 7}} source={require('../assets/images/incidentAddButton.png')}/>
                 </TouchableOpacity>
@@ -418,6 +524,23 @@ const MapComponent: React.FC<Props> = ({}) => {
                             </TouchableOpacity>
                         ))}
                         <Button title="Annuler" onPress={() => setShowIncidentModal(false)} />
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal visible={polyline && approachingIncident !== null && isAuthenticated && userId && approachingIncident.user.id !== userId} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>{approachingIncident?.type.name} toujours en cours ?</Text>
+                        <View style={{display: 'flex', flexDirection: 'row'}}>
+                            <TouchableOpacity style={[styles.incidentInteractionButton, {backgroundColor: 'rgba(87,69,138, 1)'}]} onPress={upvoteIncident}>
+                                <Text style={styles.incidentInteractionButtonText}>Oui</Text>
+                            </TouchableOpacity>
+                            <View style={{width: 50}}></View>
+                            <TouchableOpacity style={[styles.incidentInteractionButton, {backgroundColor: 'grey'}]} onPress={downvoteIncident}>
+                                <Text style={styles.incidentInteractionButtonText}>Non</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -540,6 +663,18 @@ const styles = StyleSheet.create({
         zIndex: 2,
         backgroundColor: 'white',
         borderRadius: 12,
+    },
+    incidentInteractionButton: {
+        width: 140,
+        height: 50,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    incidentInteractionButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold'
     }
 });
 

@@ -46,6 +46,10 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
         setAddUserRouteVisible(true);
     }
 
+    const handleSelectItem = (item: any) => {
+        onSelect(item);
+    }
+
     const deleteItem = async (item: any) => {
         Alert.alert(
             'Êtes vous sûr de vouloir supprimer cet itinéraire ?',
@@ -77,7 +81,7 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
                             data={userRoutes}
                             keyExtractor={(item, index) => item.id}
                             renderItem={({ item }) => (
-                                <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
+                                <TouchableOpacity style={styles.item} onPress={() => handleSelectItem(item)}>
                                     <View style={{
                                         flexDirection: 'row',
                                         justifyContent: 'space-between',

@@ -376,9 +376,7 @@ const reportIncident = (incidentType: any) => {
 
 Pour tester l'application voici les différentes options :
 
-- [Build de développement](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Émulateur Android](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [Simulateur iOS (seulement sur Mac)](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), application mobile servant à tester l'application directement sur votre appareil en scannant le QR code donné par la commande "npx expo start"
-
 

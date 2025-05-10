@@ -36,17 +36,18 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
         setDestination([item.lat, item.lon])
     }
 
-    const fetchSearchResults = () => {
-        if(searchDestinationText === '') {
-            setSearchResults([])
+    const fetchSearchResults = (text: string) => {
+        if (text === '') {
+            setSearchResults([]);
             setShowResults(false);
         } else {
-            ApiService.get('/geocode', {address: searchDestinationText}).then((response) => {
-                setSearchResults(response.data)
+            ApiService.get('/geocode', { address: text }).then((response) => {
+                setSearchResults(response.data);
                 setShowResults(true);
-            })
+            });
         }
-    }
+    };
+
 
     return (
         <Modal visible={visible} transparent animationType="slide">
@@ -56,7 +57,14 @@ const AddUserRoute = ({ visible, onClose, onSuccess }: any) => {
                     <TextInput value={name} onChangeText={setName} style={styles.input} />
 
                     <Text style={styles.label}>Destination</Text>
-                    <TextInput value={searchDestinationText} onChangeText={fetchSearchResults} style={styles.input} />
+                    <TextInput
+                        value={searchDestinationText}
+                        onChangeText={(text) => {
+                            setSearchDestinationText(text);
+                            fetchSearchResults(text);
+                        }}
+                        style={styles.input}
+                    />
                     {showResults && searchResults.length > 0 && (
                         <View style={styles.resultContainer}>
                             <FlatList
