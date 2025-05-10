@@ -112,10 +112,9 @@ const ProfileScreen = () => {
                 <Text style={styles.changePassword}>Modifier le mot de passe</Text>
             </TouchableOpacity>
 
-            <Button
-                title={editing ? 'Enregistrer' : 'Modifier'}
-                onPress={editing ? saveChanges : () => setEditing(true)}
-            />
+            <TouchableOpacity style={styles.editButton} onPress={editing ? saveChanges : () => setEditing(true)}>
+                <Text style={styles.editButtonText}>{editing ? 'Enregistrer' : 'Modifier'}</Text>
+            </TouchableOpacity>
 
             <EditPassword
                 visible={editPassword}
@@ -130,12 +129,23 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: '#fff' },
     avatar: { width: 100, height: 100, borderRadius: 50, alignSelf: 'center' },
     changePhoto: { textAlign: 'center', color: 'blue', marginTop: 8 },
-    changePassword: { textAlign: 'center', color: 'blue', margin: 20 },
+    changePassword: { textAlign: 'center', color: 'rgba(87,69,138, 1)', margin: 20 },
     label: { marginTop: 20, fontWeight: 'bold' },
     input: { borderBottomWidth: 1, borderBottomColor: '#ccc', padding: 5 },
     email: { paddingVertical: 10, color: '#555' },
     logoutButton: { position: "absolute", top: 20, right: 20 },
     goBackButton: { position: "absolute", top: 20, left: 20 },
+    editButton: {
+        backgroundColor: 'rgba(87,69,138, 1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 40,
+        borderRadius: 10,
+    },
+    editButtonText: {
+        color: 'white',
+        fontSize: 18,
+    }
 });
 
 export default ProfileScreen;

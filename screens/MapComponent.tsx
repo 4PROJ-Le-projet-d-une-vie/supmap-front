@@ -124,6 +124,7 @@ const MapComponent: React.FC<Props> = ({}) => {
             ApiService.post('/users/me/routes', route.params.scannedRoute).then(() => {
                 ApiService.get('/users/me/routes').then(response => {
                     setUserRoutes(response);
+                    route.params.scannedRoute = null;
                 })
             });
         }
@@ -344,9 +345,7 @@ const MapComponent: React.FC<Props> = ({}) => {
                             <Image
                                 resizeMethod={'resize'}
                                 source={
-                                    isAuthenticated
-                                        ? { uri: 'https://i.pravatar.cc/100' }
-                                        : require('../assets/images/default-avatar.jpg')
+                                    require('../assets/images/default-avatar.jpg')
                                 }
                                 style={styles.avatar}
                             />

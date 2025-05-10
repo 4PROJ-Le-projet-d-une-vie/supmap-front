@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import {useNavigation} from "@react-navigation/native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {goBack} from "expo-router/build/global-state/routing";
 
 export default function CameraScreen() {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -20,13 +22,12 @@ export default function CameraScreen() {
     const isValidCoordinatesArray = (data: string): boolean => {
         try {
             const parsed = JSON.parse(data);
-            console.log(parsed.locations);
-            if (!Array.isArray(parsed.locations)) return false;
-            return parsed.locations.every(
+            if (!Array.isArray(parsed.route)) return false;
+            return parsed.route.every(
                 (item: any) =>
                     typeof item === 'object' &&
-                    typeof item.latitude === 'number' &&
-                    typeof item.longitude === 'number'
+                    typeof item.lat === 'number' &&
+                    typeof item.lon === 'number'
             );
         } catch (e) {
             console.log(e);
@@ -35,27 +36,6 @@ export default function CameraScreen() {
     };
 
     const handleBarCodeScanned = ({ type, data }: { type: string, data: string }) => {
-        console.log(data);
-        data = JSON.stringify({
-            "name": "couscous madame",
-            "route": [
-                { "lat": 48.853, "lon": 2.349 },
-                { "lat": 48.864, "lon": 2.321 },
-                { "lat": 48.871, "lon": 2.360 },
-                { "lat": 48.845, "lon": 2.370 },
-                { "lat": 48.857, "lon": 2.333 },
-                { "lat": 48.866, "lon": 2.342 },
-                { "lat": 48.852, "lon": 2.312 },
-                { "lat": 48.874, "lon": 2.327 },
-                { "lat": 48.843, "lon": 2.355 },
-                { "lat": 48.861, "lon": 2.364 },
-                { "lat": 48.858, "lon": 2.350 },
-                { "lat": 48.849, "lon": 2.328 },
-                { "lat": 48.873, "lon": 2.343 },
-                { "lat": 48.846, "lon": 2.336 },
-                { "lat": 48.867, "lon": 2.358 }
-            ]
-        })
         if (scanned) return;
 
         setIsDetecting(true);
@@ -70,6 +50,10 @@ export default function CameraScreen() {
         navigation.navigate('Home', {scannedRoute: JSON.parse(data)})
     };
 
+    const goBack = () => {
+        navigation.navigate('Home')
+    }
+
 
     if (hasPermission === null) return <Text>Demande de permission…</Text>;
     if (hasPermission === false) return <Text>Permission refusée</Text>;
@@ -78,11 +62,14 @@ export default function CameraScreen() {
         <View style={styles.container}>
             <CameraView
                 style={styles.camera}
-                onBarcodeScanned={handleBarCodeScanned} // ⚠️ La prop correcte est `onBarcodeScanned`
+                onBarcodeScanned={handleBarCodeScanned}
                 barcodeScannerSettings={{
-                    barcodeTypes: ['qr'], // ⚠️ La prop correcte est `barcodeTypes`
+                    barcodeTypes: ['qr'],
                 }}
             >
+                <TouchableOpacity onPress={goBack} style={styles.goBackButton}>
+                    <MaterialIcons name={'arrow-back'} size={30} color={'rgba(87,69,138, 1)'}/>
+                </TouchableOpacity>
                 {scanned && (
                     <View style={styles.scannedData}>
                         <Text>QR Code Scanné: {qrData}</Text>
@@ -139,5 +126,15 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
-
+    goBackButton: {
+        backgroundColor: 'white',
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        borderRadius: 10,
+        width: 50,
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });

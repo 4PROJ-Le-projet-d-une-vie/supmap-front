@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import {View, StyleSheet, Text, TextInput, Button, Alert} from 'react-native';
+import {View, StyleSheet, Text, TextInput, Button, Alert, TouchableOpacity} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/AuthContext';
 import ApiService from "@/services/ApiService";
 import { saveTokens } from '@/services/AuthStorage'
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const RegisterScreen = () => {
     const { login } = useAuth();
@@ -28,8 +29,15 @@ const RegisterScreen = () => {
         })
     };
 
+    const goBack = () => {
+        navigation.navigate('Login');
+    }
+
     return (
         <View style={styles.container}>
+            <TouchableOpacity onPress={goBack} style={{top: -250}}>
+                <MaterialIcons name={'arrow-back'} size={30} color={'rgba(87,69,138, 1)'}/>
+            </TouchableOpacity>
             <Text style={styles.title}>Inscription</Text>
             <TextInput
                 placeholder="Email"

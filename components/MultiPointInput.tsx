@@ -116,19 +116,9 @@ export default function MultiPointInput({ onSubmit, onCancel, avoidTolls, setAvo
                         setDestination({ ...destination, name: text });
                         search(text, -1);
                     }}
-                    placeholder="Ex : Marseille"
+                    placeholder="Ex : Port en Bessin"
                     style={styles.input}
                 />
-                <View style={styles.tollToggleButton}>
-                    <Text style={styles.tollText}>Éviter les péages</Text>
-                    <Switch
-                        trackColor={{ false: '#767577', true: '#81b0ff' }}
-                        thumbColor={avoidTolls ? 'rgba(87,69,138, 1)' : '#f4f3f4'}
-                        ios_backgroundColor="#3e3e3e"
-                        onValueChange={() => setAvoidTolls(!avoidTolls)}
-                        value={avoidTolls}
-                    />
-                </View>
 
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                     <Text style={styles.submitButtonText}>VALIDER L'ITINÉRAIRE</Text>
@@ -179,12 +169,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     addStop: {
-        color: '#007aff',
+        color: 'rgba(87,69,138, 1)',
         fontWeight: '600',
         marginBottom: 8,
     },
     submitButton: {
-        backgroundColor: '#004baf',
+        backgroundColor: 'rgba(87,69,138, 1)',
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 10,

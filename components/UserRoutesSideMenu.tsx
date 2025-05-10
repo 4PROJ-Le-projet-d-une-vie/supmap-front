@@ -1,7 +1,18 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, FlatList, Animated, Dimensions} from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    FlatList,
+    Animated,
+    Dimensions,
+    ScrollView,
+    Alert
+} from 'react-native';
 import AddUserRoute from "@/components/AddUserRoute";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import ApiService from "@/services/ApiService";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -27,8 +38,33 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
         });
     };
 
+    const handleCloseAll = () => {
+        onCloseAll();
+    }
+
     const addUserRoute = () => {
         setAddUserRouteVisible(true);
+    }
+
+    const deleteItem = async (item: any) => {
+        Alert.alert(
+            'Êtes vous sûr de vouloir supprimer cet itinéraire ?',
+            item.name,
+            [
+                {
+                    text: 'Valider',
+                    onPress: async () => {
+                        await ApiService.delete('users/me/routes/' + item.id)
+                        handleCloseAll()
+                    }
+                },
+                {
+                    text: 'Annuler',
+                    onPress: () => {}
+                }
+            ],
+            {cancelable: false},
+        );
     }
 
     return (
@@ -36,20 +72,34 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
             <Text style={styles.title}>Itinéraires enregistrés</Text>
             {
                 userRoutes?.length > 0 && (
-                    <FlatList
-                        data={userRoutes}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({item}) => (
-                            <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
-                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                                    <Text style={styles.itemText}>{item.name}</Text>
-                                    <MaterialIcons name={'play-arrow'} style={{marginRight: 10}} size={40} color={'white'} />
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                    <View style={{ flex: 0.75 }}>
+                        <FlatList
+                            data={userRoutes}
+                            keyExtractor={(item, index) => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity style={styles.item} onPress={() => onSelect(item)}>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <Text style={styles.itemText}>{item.name}</Text>
+                                        <MaterialIcons
+                                            name={'delete'}
+                                            style={{ marginRight: 10 }}
+                                            size={30}
+                                            color={'white'}
+                                            onPress={() => deleteItem(item)}
+                                        />
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                            contentContainerStyle={{ paddingBottom: 100 }}
+                        />
+                    </View>
                 )
             }
+
             {
                 userRoutes?.length <= 0 && (
                     <Text>Aucune route créée</Text>
@@ -79,24 +129,25 @@ const styles = StyleSheet.create({
     menu: {
         position: 'absolute',
         top: 0,
-        width: '120%',
+        left: 0,
+        width: '115%',
         height: '120%',
         backgroundColor: '#fff',
-        zIndex: 10,
         padding: 20,
         shadowColor: '#000',
-        shadowOffset: {width: 4, height: 0},
+        shadowOffset: { width: 4, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 6,
         elevation: 10,
         zIndex: 102,
     },
-    title: {fontSize: 20, fontWeight: 'bold', marginTop: 30, marginBottom: 20},
+    title: {fontSize: 20, fontWeight: 'bold', marginTop: 40, marginBottom: 20},
     item: {
         paddingVertical: 12,
         backgroundColor: 'rgba(87,69,138, 1)',
         borderRadius: 10,
         paddingLeft: 10,
+        marginTop: 10
     },
     itemText: {
         fontSize: 16,
@@ -108,13 +159,13 @@ const styles = StyleSheet.create({
     addButton: {
         position: 'absolute',
         bottom: 150,
-        left: 10,
+        left: 20,
         backgroundColor: 'rgba(87,69,138, 1)',
+        alignItems: 'center',
+        justifyContent: 'center',
         width: '100%',
         height: 50,
         borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     addButtonText: {
         color: 'white',

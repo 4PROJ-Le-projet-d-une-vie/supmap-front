@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import {View, StyleSheet, Text, TextInput, Button, Alert} from 'react-native';
+import {View, StyleSheet, Text, TextInput, Button, Alert, TouchableOpacity} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/AuthContext';
 import ApiService from "@/services/ApiService";
 import {saveTokens} from "@/services/AuthStorage";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const LoginScreen = () => {
     const { login } = useAuth();
     const navigation = useNavigation();
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -28,8 +28,15 @@ const LoginScreen = () => {
         })
     };
 
+    const goBack = () => {
+        navigation.navigate('Home');
+    }
+
     return (
         <View style={styles.container}>
+            <TouchableOpacity onPress={goBack} style={{top: -250}}>
+                <MaterialIcons name={'arrow-back'} size={30} color={'rgba(87,69,138, 1)'}/>
+            </TouchableOpacity>
             <Text style={styles.title}>Connexion</Text>
             <TextInput
                 placeholder="Email/Nom d'utilisateur"
@@ -65,7 +72,7 @@ const styles = StyleSheet.create({
     },
     link: {
         marginTop: 20,
-        color: '#3b82f6',
+        color: 'rgba(87,69,138, 1)',
         textAlign: 'center',
     },
 });
