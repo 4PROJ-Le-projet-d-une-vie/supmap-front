@@ -22,8 +22,8 @@ export default function CameraScreen() {
     const isValidCoordinatesArray = (data: string): boolean => {
         try {
             const parsed = JSON.parse(data);
-            if (!Array.isArray(parsed.locations)) return false;
-            return parsed.locations.every(
+            if (!Array.isArray(parsed.route)) return false;
+            return parsed.route.every(
                 (item: any) =>
                     typeof item === 'object' &&
                     typeof item.lat === 'number' &&
