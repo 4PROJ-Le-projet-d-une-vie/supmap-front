@@ -8,7 +8,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "image": "sdk-52"
+        "image": "latest"
       }
     },
     "preview": {
