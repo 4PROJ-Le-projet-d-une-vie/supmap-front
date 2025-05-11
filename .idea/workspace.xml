@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8eefba08-4f81-40e4-bba2-71b7ec7f3187" name="Changes" comment="refactor project">
+    <list default="true" id="8eefba08-4f81-40e4-bba2-71b7ec7f3187" name="Changes" comment="readme">
+      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/MapComponent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/MapComponent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/route.json" beforeDir="false" afterPath="$PROJECT_DIR$/constants/route.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,6 +15,18 @@
   </component>
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="DatabaseLocalColorSettings">
+    <colors>
+      <entry key="21d73e07-3ae0-4954-8b63-2bf272fe3bca" value="Blue" />
+    </colors>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -30,31 +39,47 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/bapti/Desktop/M1/LeProjetDuneVie/supmap-front",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "C:\\Users\\bapti\\Desktop\\M1\\LeProjetDuneVie\\supmap-front\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenDatabaseViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/bapti/Desktop/M1/LeProjetDuneVie/supmap-front/assets/images&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\bapti\\Desktop\\M1\\LeProjetDuneVie\\supmap-front\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
+    ]
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\bapti\Desktop\M1\LeProjetDuneVie\supmap-front\assets\images" />
+      <recent name="C:\Users\bapti\Desktop\M1\LeProjetDuneVie\supmap-front" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\bapti\Desktop\M1\LeProjetDuneVie\supmap-front\screens" />
+      <recent name="C:\Users\bapti\Desktop\M1\LeProjetDuneVie\supmap-front\assets\images" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-WS-243.23654.157" />
+        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-WS-251.23774.424" />
       </set>
     </attachedChunks>
   </component>
@@ -70,7 +95,110 @@
       <workItem from="1744011032006" duration="4133000" />
       <workItem from="1744015655963" duration="6896000" />
       <workItem from="1744365375301" duration="598000" />
+      <workItem from="1746455510472" duration="2185000" />
+      <workItem from="1746514474976" duration="3830000" />
+      <workItem from="1746519369496" duration="53204000" />
+      <workItem from="1746699991683" duration="17762000" />
+      <workItem from="1746776638560" duration="34290000" />
+      <workItem from="1746877589080" duration="24253000" />
     </task>
+    <task id="LOCAL-00001" summary="Add incidents implementation, routing, auto refresh instruction">
+      <option name="closed" value="true" />
+      <created>1746643965247</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1746643965248</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Update instructions, remaining distance, duration, arrival time, display icons for instructions, start documentation">
+      <option name="closed" value="true" />
+      <created>1746723381082</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1746723381082</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Style changes, url fixes, map design fixes">
+      <option name="closed" value="true" />
+      <created>1746790596683</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1746790596683</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Fixes and update doc">
+      <option name="closed" value="true" />
+      <created>1746796491884</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1746796491884</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fixes">
+      <option name="closed" value="true" />
+      <created>1746799801692</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1746799801692</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Add RealtimeNavigationService and update icons">
+      <option name="closed" value="true" />
+      <created>1746867660329</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1746867660329</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Style fixes">
+      <option name="closed" value="true" />
+      <created>1746880352575</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1746880352575</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Style fixes">
+      <option name="closed" value="true" />
+      <created>1746883308432</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1746883308432</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Incidents manage">
+      <option name="closed" value="true" />
+      <created>1746894382831</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1746894382831</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Manage web sockets">
+      <option name="closed" value="true" />
+      <created>1746895459230</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1746895459230</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Some fixes">
+      <option name="closed" value="true" />
+      <created>1746901484226</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1746901484226</updated>
+    </task>
+    <task id="LOCAL-00012" summary="readme">
+      <option name="closed" value="true" />
+      <created>1746905259292</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1746905259292</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -78,6 +206,18 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="refactor project" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor project" />
+    <MESSAGE value="workspace" />
+    <MESSAGE value="Add incidents implementation, routing, auto refresh instruction" />
+    <MESSAGE value="Update instructions, remaining distance, duration, arrival time, display icons for instructions, start documentation" />
+    <MESSAGE value="Style changes, url fixes, map design fixes" />
+    <MESSAGE value="Fixes and update doc" />
+    <MESSAGE value="Fixes" />
+    <MESSAGE value="Add RealtimeNavigationService and update icons" />
+    <MESSAGE value="Style fixes" />
+    <MESSAGE value="Incidents manage" />
+    <MESSAGE value="Manage web sockets" />
+    <MESSAGE value="Some fixes" />
+    <MESSAGE value="readme" />
+    <option name="LAST_COMMIT_MESSAGE" value="readme" />
   </component>
 </project>
