@@ -3,7 +3,6 @@ import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import {useNavigation} from "@react-navigation/native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import {goBack} from "expo-router/build/global-state/routing";
 
 export default function CameraScreen() {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);

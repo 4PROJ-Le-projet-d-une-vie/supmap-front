@@ -26,6 +26,7 @@
     "expo-blur": "~14.0.3",
     "expo-camera": "~16.0.18",
     "expo-constants": "~17.0.8",
+    "expo-dev-client": "~5.0.20",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-image-picker": "~16.0.6",
@@ -43,7 +44,6 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
-    "react-native-camera": "^4.2.1",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-maps": "1.18.0",
     "react-native-maps-line-arrow": "^0.3.1",
@@ -54,8 +54,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
-    "uid": "^2.0.2",
-    "expo-dev-client": "~5.0.20"
+    "uid": "^2.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
