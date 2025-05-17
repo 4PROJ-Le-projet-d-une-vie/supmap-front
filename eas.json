@@ -15,7 +15,6 @@
       "distribution": "internal"
     },
     "preview-apk": {
-      "developmentClient": true,
       "distribution": "internal",
       "android": {
         "buildType": "apk"
