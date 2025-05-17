@@ -25,7 +25,7 @@ export default ({ config }) => ({
     },
     config: {
       googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_API_KEY
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
       }
     },
     package: "com.yourcompany.supMapFrontend"
