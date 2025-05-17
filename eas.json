@@ -19,7 +19,10 @@
         "buildType": "apk",
         "image": "latest"
       },
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "AIzaSyBCu5S4hp4nJaB8J7r5I4h7L6u-shbLmyo"
+      }
     },
     "production": {
       "autoIncrement": true,

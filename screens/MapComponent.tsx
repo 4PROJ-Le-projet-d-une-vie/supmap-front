@@ -412,7 +412,6 @@ const MapComponent: React.FC<Props> = ({}) => {
                         style={styles.map}
                         initialRegion={region}
                         showsUserLocation
-                        provider="google"
                     >
                         {route.params && route.params.selectedRoute && route.params.selectedRoute.locations && route.params.selectedRoute.locations.map((location: any, index: number) => (
                             <Marker key={index} coordinate={{ latitude: location.lat, longitude: location.lon }} title={location.name ? location.name : `Étape ${index + 1}`}>

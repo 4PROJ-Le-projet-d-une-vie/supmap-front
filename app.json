@@ -16,7 +16,12 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.supMapFrontend"
+      "package": "com.anonymous.supMapFrontend",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBCu5S4hp4nJaB8J7r5I4h7L6u-shbLmyo"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
