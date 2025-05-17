@@ -32,5 +32,12 @@ export default ({ config }) => ({
   },
   web: {
     favicon: "./assets/favicon.png"
+  },
+  expo: {
+    extra: {
+      eas: {
+        projectId: "d13b1fff-aa5e-40bd-bb2d-028ae219ec50"
+      }
+    }
   }
 });
