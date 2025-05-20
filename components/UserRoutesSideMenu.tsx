@@ -1,15 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    FlatList,
-    Animated,
-    Dimensions,
-    ScrollView,
-    Alert
-} from 'react-native';
+import {Alert, Animated, Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import AddUserRoute from "@/components/AddUserRoute";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import ApiService from "@/services/ApiService";
@@ -82,15 +72,11 @@ const UserRoutesSideMenu = ({userRoutes, onSelect, onClose, onCloseAll}: any) =>
                             keyExtractor={(item, index) => item.id}
                             renderItem={({ item }) => (
                                 <TouchableOpacity style={styles.item} onPress={() => handleSelectItem(item)}>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <Text style={styles.itemText}>{item.name}</Text>
+                                    <View style={styles.itemContainer}>
+                                        <Text style={styles.itemText} numberOfLines={0}>{item.name}</Text>
                                         <MaterialIcons
                                             name={'delete'}
-                                            style={{ marginRight: 10 }}
+                                            style={styles.icon}
                                             size={30}
                                             color={'white'}
                                             onPress={() => deleteItem(item)}
@@ -156,10 +142,21 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         marginTop: 10
     },
+    itemContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start', // ou 'center' selon ton besoin
+    },
     itemText: {
+        flex: 1,
         fontSize: 16,
         color: 'white',
         fontWeight: 'bold',
+        marginRight: 10, // pour laisser de l'espace à l'icône
+        flexWrap: 'wrap',
+    },
+    icon: {
+        marginRight: 10,
     },
     closeButton: {position: 'absolute', top: 15, right: 15},
     backButton: {position: 'absolute', top: 15, left: 15},
